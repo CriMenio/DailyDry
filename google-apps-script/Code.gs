@@ -1128,3 +1128,23 @@ function setupAdminOnce() {
   sh.appendRow([id, 'admin', encodePasswordCell('ChangeThisPassword123')]);
   Logger.log('Admin created — User Name: admin / Password: ChangeThisPassword123');
 }
+
+/**
+ * Run once from the editor to reset an admin password (writes hash to AdminLogin sheet).
+ * 1. Set userName + newPassword below, Save, Run changeAdminPassword, Authorize if asked.
+ * 2. Log in on the site with the new password. Comment out or delete this run afterward.
+ */
+function changeAdminPassword() {
+  const userName = 'admin';
+  const newPassword = 'PUT_NEW_PASSWORD_HERE';
+  const sh = sheet(SHEETS.ADMIN_SIGNUP);
+  const data = sh.getDataRange().getValues();
+  for (let i = 1; i < data.length; i++) {
+    if (String(data[i][1]).trim() === userName) {
+      sh.getRange(i + 1, 3).setValue(encodePasswordCell(newPassword));
+      Logger.log('Password updated for: ' + userName);
+      return;
+    }
+  }
+  throw new Error('User not found: ' + userName);
+}
