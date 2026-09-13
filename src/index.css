@@ -31,6 +31,7 @@
 
 html {
   scroll-behavior: smooth;
+  overflow-x: clip;
 }
 
 body {
@@ -39,6 +40,13 @@ body {
   color: var(--text-dark);
   line-height: 1.6;
   -webkit-font-smoothing: antialiased;
+  overflow-x: clip;
+  width: 100%;
+}
+
+#root {
+  overflow-x: clip;
+  max-width: 100%;
 }
 
 img {
@@ -66,6 +74,8 @@ ul {
   max-width: 1280px;
   margin: 0 auto;
   padding: 0 24px;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .section-title {
@@ -176,7 +186,29 @@ ul {
 }
 
 main {
-  overflow-x: hidden;
+  overflow-x: clip;
+  max-width: 100%;
+}
+
+@media (max-width: 767px) {
+  .container {
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+
+  .shop-layout,
+  .shop-layout > *,
+  .page-content .container,
+  .product-grid {
+    min-width: 0;
+    max-width: 100%;
+  }
+
+  .product-detail-image img {
+    object-fit: contain;
+    object-position: center;
+    background: var(--white);
+  }
 }
 
 .header-inner {
@@ -589,6 +621,19 @@ main {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
   gap: 1.5rem;
+}
+
+@media (max-width: 767px) {
+  .product-grid {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 1.25rem;
+  }
+
+  .product-grid .product-card {
+    min-width: 0;
+    max-width: 100%;
+    width: 100%;
+  }
 }
 
 .product-card {
@@ -1391,6 +1436,9 @@ main {
     background: transparent;
     box-shadow: none;
     padding: 0;
+    width: 100%;
+    max-width: 100%;
+    overflow: hidden;
   }
 
   .shop-filters-title,
@@ -1418,7 +1466,8 @@ main {
     scrollbar-width: none;
     gap: 0.5rem;
     padding: 0.15rem 0 0.35rem;
-    margin: 0 -4px;
+    margin: 0;
+    max-width: 100%;
   }
 
   .category-filter-toggle::-webkit-scrollbar {
