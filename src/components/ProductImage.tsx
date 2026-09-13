@@ -1,0 +1,38 @@
+import { useState } from 'react';
+import { fallbackImage } from '../data/media';
+
+interface ProductImageProps {
+  src: string;
+  alt: string;
+  className?: string;
+  loading?: 'lazy' | 'eager';
+}
+
+export default function ProductImage({
+  src,
+  alt,
+  className = '',
+  loading = 'lazy',
+}: ProductImageProps) {
+  const [loaded, setLoaded] = useState(false);
+  const [error, setError] = useState(false);
+
+  const imageSrc = error ? fallbackImage : src;
+
+  return (
+    <div className={`product-image-wrap ${loaded ? 'loaded' : ''} ${className}`}>
+      {!loaded && <div className="image-shimmer" aria-hidden="true" />}
+      <img
+        src={imageSrc}
+        alt={alt}
+        className="product-image"
+        loading={loading}
+        onLoad={() => setLoaded(true)}
+        onError={() => {
+          setError(true);
+          setLoaded(true);
+        }}
+      />
+    </div>
+  );
+}
