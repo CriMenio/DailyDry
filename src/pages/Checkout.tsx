@@ -59,7 +59,7 @@ function CheckoutContent() {
       });
       clearCart();
       showToast(`Order placed! Bill ${order.billNumber}`);
-      navigate(`/track-order?order=${encodeURIComponent(order.orderNumber)}`);
+      navigate(`/track-order?order=${encodeURIComponent(order.orderNumber)}&placed=1`);
     } catch (err) {
       showToast(err instanceof Error ? err.message : 'Could not place order', 'error');
     } finally {

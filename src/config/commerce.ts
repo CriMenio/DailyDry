@@ -8,6 +8,48 @@ export const STORE_PHONE_DISPLAY = '+91 77109 55102';
 export const STORE_PHONE_TEL = `tel:+91${STORE_PHONE}`;
 export const STORE_WHATSAPP_URL = `https://wa.me/91${STORE_PHONE}`;
 
+/** Pre-filled WhatsApp message for customer to confirm a placed order with the store. */
+export function buildOrderConfirmWhatsAppUrl(order: {
+  orderNumber: string;
+  billNumber: string;
+  customerName: string;
+  mobile: string;
+  address: string;
+  items: { name: string; quantity: number; unitPrice: number }[];
+  orderAmount: number;
+  shippingCharges: number;
+  totalAmount: number;
+  paymentStatus?: string;
+}): string {
+  const lines = order.items.map(
+    (line) => `• ${line.name} × ${line.quantity} — ₹${line.unitPrice * line.quantity}`
+  );
+  const payment =
+    order.paymentStatus === 'COD' || !order.paymentStatus
+      ? 'Cash on delivery (COD)'
+      : order.paymentStatus;
+
+  const text = [
+    'Hello Daily Dry, I placed an order on your website. Please confirm.',
+    '',
+    `Order: ${order.orderNumber}`,
+    `Bill: ${order.billNumber}`,
+    `Name: ${order.customerName}`,
+    `Mobile: ${order.mobile}`,
+    `Address: ${order.address}`,
+    '',
+    'Items:',
+    ...lines,
+    '',
+    `Subtotal: ₹${order.orderAmount}`,
+    `Shipping: ₹${order.shippingCharges}`,
+    `Total: ₹${order.totalAmount}`,
+    `Payment: ${payment}`,
+  ].join('\n');
+
+  return `${STORE_WHATSAPP_URL}?text=${encodeURIComponent(text)}`;
+}
+
 export const STORE_ADDRESS = 'Kalamboli Sector 14, Navi Mumbai, Maharashtra 400001';
 
 export const STORE_INSTAGRAM_HANDLE = '@dailydry.co';

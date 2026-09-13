@@ -1,8 +1,9 @@
-import { FormEvent, useEffect, useState } from 'react';
+import { FormEvent, useEffect, useMemo, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
-import { PackageSearch } from 'lucide-react';
+import { MessageCircle, PackageSearch } from 'lucide-react';
 import { fetchTrackOrder } from '../services/api';
 import type { OrderRecord } from '../types/api';
+import { buildOrderConfirmWhatsAppUrl } from '../config/commerce';
 import { formatPrice } from '../data/products';
 import OrderTrackingTimeline from '../components/OrderTrackingTimeline';
 
@@ -14,53 +15,79 @@ function orderStatusTone(status: string): string {
   return 'neutral';
 }
 
-function TrackOrderResult({ order }: { order: OrderRecord }) {
+function TrackOrderResult({ order, justPlaced }: { order: OrderRecord; justPlaced?: boolean }) {
+  const whatsappUrl = useMemo(() => buildOrderConfirmWhatsAppUrl(order), [order]);
+
   return (
-    <article className="track-order-result order-card order-card-pro">
-      <div className="order-card-head">
-        <div>
-          <strong className="order-card-id">{order.orderNumber}</strong>
-          <p className="order-meta">
-            Bill {order.billNumber} · {order.customerName}
-          </p>
+    <>
+      {justPlaced && (
+        <div className="order-placed-banner" role="status">
+          <strong>Order placed successfully.</strong>
+          <span> Send a quick WhatsApp message so we can confirm and prepare your order.</span>
         </div>
-        <span className={`order-status-badge order-status-badge--${orderStatusTone(order.orderStatus)}`}>
-          {order.orderStatus}
-        </span>
-      </div>
+      )}
 
-      <OrderTrackingTimeline status={order.orderStatus || 'Order Placed'} />
-
-      <ul className="order-lines order-lines-pro">
-        {order.items.map((line, i) => (
-          <li key={`${line.name}-${i}`}>
-            <span className="order-line-name">{line.name}</span>
-            <span className="order-line-qty">× {line.quantity}</span>
-            <span className="order-line-price">{formatPrice(line.unitPrice * line.quantity)}</span>
-          </li>
-        ))}
-      </ul>
-
-      <div className="order-totals order-totals-pro">
-        <div className="order-totals-row">
-          <span>Subtotal</span>
-          <span>{formatPrice(order.orderAmount)}</span>
-        </div>
-        <div className="order-totals-row">
-          <span>Shipping</span>
-          <span>{formatPrice(order.shippingCharges)}</span>
-        </div>
-        <div className="order-totals-row order-totals-row-total">
-          <strong>Total</strong>
-          <strong>{formatPrice(order.totalAmount)}</strong>
-        </div>
-        <div className="order-totals-foot">
-          <span className={`order-payment-pill order-payment-pill--${orderStatusTone(order.paymentStatus)}`}>
-            Payment: {order.paymentStatus === 'COD' ? 'Cash on delivery' : order.paymentStatus}
+      <article className="track-order-result order-card order-card-pro">
+        <div className="order-card-head">
+          <div>
+            <strong className="order-card-id">{order.orderNumber}</strong>
+            <p className="order-meta">
+              Bill {order.billNumber} · {order.customerName}
+            </p>
+          </div>
+          <span className={`order-status-badge order-status-badge--${orderStatusTone(order.orderStatus)}`}>
+            {order.orderStatus}
           </span>
         </div>
-      </div>
-    </article>
+
+        <OrderTrackingTimeline status={order.orderStatus || 'Order Placed'} />
+
+        <ul className="order-lines order-lines-pro">
+          {order.items.map((line, i) => (
+            <li key={`${line.name}-${i}`}>
+              <span className="order-line-name">{line.name}</span>
+              <span className="order-line-qty">× {line.quantity}</span>
+              <span className="order-line-price">{formatPrice(line.unitPrice * line.quantity)}</span>
+            </li>
+          ))}
+        </ul>
+
+        <div className="order-totals order-totals-pro">
+          <div className="order-totals-row">
+            <span>Subtotal</span>
+            <span>{formatPrice(order.orderAmount)}</span>
+          </div>
+          <div className="order-totals-row">
+            <span>Shipping</span>
+            <span>{formatPrice(order.shippingCharges)}</span>
+          </div>
+          <div className="order-totals-row order-totals-row-total">
+            <strong>Total</strong>
+            <strong>{formatPrice(order.totalAmount)}</strong>
+          </div>
+          <div className="order-totals-foot">
+            <span className={`order-payment-pill order-payment-pill--${orderStatusTone(order.paymentStatus)}`}>
+              Payment: {order.paymentStatus === 'COD' ? 'Cash on delivery' : order.paymentStatus}
+            </span>
+          </div>
+        </div>
+
+        <div className="order-whatsapp-cta">
+          <p className="order-whatsapp-cta-text">
+            Tap below to open WhatsApp with your order details. Review the message and press <strong>Send</strong>.
+          </p>
+          <a
+            href={whatsappUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="btn order-whatsapp-btn btn-lift"
+          >
+            <MessageCircle size={20} aria-hidden />
+            Notify us on WhatsApp
+          </a>
+        </div>
+      </article>
+    </>
   );
 }
 
@@ -70,6 +97,7 @@ export default function TrackOrder() {
   const [order, setOrder] = useState<OrderRecord | null>(null);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const landedFromCheckout = searchParams.get('placed') === '1';
 
   const runTrack = async (reference: string) => {
     const trimmed = reference.trim().replace(/\s+/g, '');
@@ -150,7 +178,7 @@ export default function TrackOrder() {
           </p>
         )}
 
-        {order && <TrackOrderResult order={order} />}
+        {order && <TrackOrderResult order={order} justPlaced={landedFromCheckout} />}
 
         <p className="track-order-foot text-muted">
           Signed in?{' '}
