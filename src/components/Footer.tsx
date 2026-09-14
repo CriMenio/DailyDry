@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom';
 import { Facebook, Instagram, Twitter, Youtube, MapPin, Phone, Mail } from 'lucide-react';
 import Logo from './Logo';
-import { STORE_PHONE_DISPLAY, STORE_PHONE_TEL, STORE_ADDRESS } from '../config/commerce';
+import { STORE_PHONE_DISPLAY, STORE_PHONE_TEL, STORE_ADDRESS, STORE_EMAIL, STORE_EMAIL_MAILTO } from '../config/commerce';
 
 export default function Footer() {
   return (
@@ -56,7 +56,7 @@ export default function Footer() {
                 <span className="footer-contact-icon" aria-hidden>
                   <Mail size={18} strokeWidth={1.75} />
                 </span>
-                <a href="mailto:hello@dailydry.com">hello@dailydry.com</a>
+                <a href={STORE_EMAIL_MAILTO}>{STORE_EMAIL}</a>
               </li>
               <li className="footer-contact-item">
                 <span className="footer-contact-icon" aria-hidden>

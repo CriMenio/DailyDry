@@ -3,10 +3,13 @@ export const FREE_SHIPPING_MIN = 999;
 export const SHIPPING_FEE = 49;
 
 /** Customer support / WhatsApp (10-digit mobile, no +91). */
-export const STORE_PHONE = '7710955102';
-export const STORE_PHONE_DISPLAY = '+91 77109 55102';
+export const STORE_PHONE = '8655933503';
+export const STORE_PHONE_DISPLAY = '+91 86559 33503';
 export const STORE_PHONE_TEL = `tel:+91${STORE_PHONE}`;
 export const STORE_WHATSAPP_URL = `https://wa.me/91${STORE_PHONE}`;
+
+export const STORE_EMAIL = 'daildryofficial@gmail.com';
+export const STORE_EMAIL_MAILTO = `mailto:${STORE_EMAIL}`;
 
 /** Pre-filled WhatsApp message for customer to confirm a placed order with the store. */
 export function buildOrderConfirmWhatsAppUrl(order: {

@@ -3,7 +3,7 @@ import { Facebook, Instagram, Twitter, Youtube } from 'lucide-react';
 import { submitContactForm } from '../services/api';
 import { useToast } from '../context/ToastContext';
 import { ScrollReveal } from '../hooks/useScrollReveal';
-import { STORE_PHONE_DISPLAY, STORE_PHONE_TEL, STORE_ADDRESS, STORE_INSTAGRAM_URL } from '../config/commerce';
+import { STORE_PHONE_DISPLAY, STORE_PHONE_TEL, STORE_ADDRESS, STORE_INSTAGRAM_URL, STORE_EMAIL, STORE_EMAIL_MAILTO } from '../config/commerce';
 
 const contactInfo = [
   {
@@ -14,8 +14,8 @@ const contactInfo = [
   {
     title: 'Chat to us',
     desc: 'Our friendly team is here to help.',
-    detail: 'hello@dailydry.com',
-    href: 'mailto:hello@dailydry.com',
+    detail: STORE_EMAIL,
+    href: STORE_EMAIL_MAILTO,
   },
   {
     title: 'Call us',
@@ -152,7 +152,7 @@ export default function Contact() {
                   id="phone"
                   type="tel"
                   required
-                  placeholder="77109 55102"
+                  placeholder="86559 33503"
                   value={form.phone}
                   onChange={(e) => setForm({ ...form, phone: e.target.value })}
                 />

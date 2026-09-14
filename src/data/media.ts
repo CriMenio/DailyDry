@@ -123,7 +123,7 @@ export const faqs = [
   },
   {
     q: 'What is your return policy?',
-    a: 'We offer easy 7-day returns on unopened products. Contact support@dailydry.com for assistance.',
+    a: 'We offer easy 7-day returns on unopened products. Contact daildryofficial@gmail.com for assistance.',
   },
 ];
 
