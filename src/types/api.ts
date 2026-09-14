@@ -47,6 +47,7 @@ export interface OrderRecord {
   totalAmount: number;
   paymentStatus: string;
   orderStatus: string;
+  orderPlacedAt?: string;
 }
 
 export interface ReviewRecord {

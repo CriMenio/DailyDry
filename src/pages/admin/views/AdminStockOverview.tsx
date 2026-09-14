@@ -1,12 +1,31 @@
 import { useMemo } from 'react';
-import { Package, AlertTriangle, CheckCircle, Ban, RefreshCw, TrendingUp } from 'lucide-react';
+import {
+  Package,
+  AlertTriangle,
+  CheckCircle,
+  Ban,
+  RefreshCw,
+  TrendingUp,
+  ShoppingBag,
+  Truck,
+  PackageCheck,
+} from 'lucide-react';
 import { formatPrice, inventoryRowToProduct } from '../../../data/products';
 import { useInventory } from '../../../context/InventoryContext';
 import ProductImage from '../../../components/ProductImage';
 import { lowStockMessage } from '../../../config/commerce';
+import { countOnlineOrdersByStatus } from '../../../config/orderStatus';
+import type { OrderRecord } from '../../../types/api';
 import { AdminPageHeader } from '../AdminFormUi';
 
-export default function AdminStockOverview({ onRefresh, loading }: { onRefresh: () => void; loading: boolean }) {
+type Props = {
+  onRefresh: () => void;
+  loading: boolean;
+  orders: OrderRecord[];
+  ordersLoading: boolean;
+};
+
+export default function AdminStockOverview({ onRefresh, loading, orders, ordersLoading }: Props) {
   const { stockRows } = useInventory();
 
   const rows = useMemo(() => {
@@ -33,7 +52,10 @@ export default function AdminStockOverview({ onRefresh, loading }: { onRefresh: 
     return { total, inStock, low, out, units };
   }, [rows]);
 
+  const orderStats = useMemo(() => countOnlineOrdersByStatus(orders), [orders]);
+
   const maxStock = Math.max(10, ...rows.map((r) => r.stock));
+  const busy = loading || ordersLoading;
 
   return (
     <div className="admin-dashboard">
@@ -41,12 +63,56 @@ export default function AdminStockOverview({ onRefresh, loading }: { onRefresh: 
         <div className="admin-overview-toolbar">
           <AdminPageHeader
             title="Stock dashboard"
-            description="Products from your StockInventory sheet. Add or edit rows in the StockInventory tab."
+            description="Products from StockInventory and online order counts from website checkout (Customer&Orders)."
           />
-          <button type="button" className="btn btn-outline btn-sm" onClick={onRefresh} disabled={loading}>
-            <RefreshCw size={16} className={loading ? 'spin-icon' : ''} />
+          <button type="button" className="btn btn-outline btn-sm" onClick={onRefresh} disabled={busy}>
+            <RefreshCw size={16} className={busy ? 'spin-icon' : ''} />
             Refresh data
           </button>
+        </div>
+      </div>
+
+      <div className="admin-card admin-card-flush admin-overview-orders-section">
+        <h3 className="admin-card-title admin-overview-section-title">Online orders (website)</h3>
+        <p className="admin-overview-section-hint">
+          One row per checkout order. Update status under <strong>Online orders</strong> in the menu.
+        </p>
+        <div className="admin-stat-grid admin-stat-grid-orders">
+          <div className="admin-stat-card admin-stat-accent">
+            <ShoppingBag size={22} />
+            <div>
+              <strong>{ordersLoading ? '…' : orderStats.total}</strong>
+              <span>Total orders</span>
+            </div>
+          </div>
+          <div className="admin-stat-card">
+            <Package size={22} />
+            <div>
+              <strong>{ordersLoading ? '…' : orderStats.placed}</strong>
+              <span>Order placed</span>
+            </div>
+          </div>
+          <div className="admin-stat-card admin-stat-warn">
+            <Truck size={22} />
+            <div>
+              <strong>{ordersLoading ? '…' : orderStats.dispatch}</strong>
+              <span>Dispatch</span>
+            </div>
+          </div>
+          <div className="admin-stat-card admin-stat-warn">
+            <Truck size={22} />
+            <div>
+              <strong>{ordersLoading ? '…' : orderStats.outForDelivery}</strong>
+              <span>Out for delivery</span>
+            </div>
+          </div>
+          <div className="admin-stat-card admin-stat-ok">
+            <PackageCheck size={22} />
+            <div>
+              <strong>{ordersLoading ? '…' : orderStats.delivered}</strong>
+              <span>Delivered</span>
+            </div>
+          </div>
         </div>
       </div>
 

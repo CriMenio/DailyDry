@@ -3,6 +3,7 @@ import { Mail, MapPin, Phone, RefreshCw } from 'lucide-react';
 import { AdminPageHeader } from '../AdminFormUi';
 import { adminUpdateOrderStatus } from '../../../services/api';
 import { formatPaymentStatusLabel, ORDER_TRACKING_STEPS } from '../../../config/orderStatus';
+import { formatOrderPlacedAt } from '../../../config/orderDisplay';
 import type { OrderRecord } from '../../../types/api';
 import { formatPrice } from '../../../data/products';
 import { useToast } from '../../../context/ToastContext';
@@ -107,6 +108,9 @@ export default function AdminOnlineOrdersIndex({ orders, loading, onRefresh }: P
                   <strong>{order.orderNumber}</strong>
                   <span className="admin-online-order-meta">
                     Bill {order.billNumber} · Placed on website
+                    {formatOrderPlacedAt(order.orderPlacedAt)
+                      ? ` · ${formatOrderPlacedAt(order.orderPlacedAt)}`
+                      : ''}
                   </span>
                 </div>
                 <div className="admin-online-order-badges">

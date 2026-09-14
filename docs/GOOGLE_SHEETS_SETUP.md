@@ -29,9 +29,10 @@ Create tabs with these **exact names** and headers (row 1):
 
 ### `Customer&Orders` *(online website orders)*
 
-| ID | Customer Name | Mobile Number | Address | EmailID | Order Number | Bill Number | Product Description | Quantity | Order Amount | Shipping Charges | Total Amount | Payment Status | Order Status |
+| ID | Customer Name | Mobile Number | Address | EmailID | Order Number | Bill Number | Product Description | Quantity | Order Amount | Shipping Charges | Total Amount | DateTime | Payment Status | Order Status |
 
-One **row per product line**; same **Order Number** / **Bill Number** for all lines in one checkout.  
+One **row per product line**; same **Order Number** / **Bill Number** / **DateTime** for all lines in one checkout.  
+**DateTime** is set automatically when the order is saved (project timezone, e.g. `2026-03-14 19:30:00`).  
 **ID** auto-increments per row.
 
 ### `Reviews`

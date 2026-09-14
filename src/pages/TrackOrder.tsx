@@ -5,6 +5,7 @@ import { fetchTrackOrder } from '../services/api';
 import type { OrderRecord } from '../types/api';
 import { buildOrderConfirmWhatsAppUrl } from '../config/commerce';
 import { formatPaymentStatusLabel } from '../config/orderStatus';
+import { formatOrderPlacedAt } from '../config/orderDisplay';
 import { formatPrice } from '../data/products';
 import OrderTrackingTimeline from '../components/OrderTrackingTimeline';
 
@@ -35,6 +36,9 @@ function TrackOrderResult({ order, justPlaced }: { order: OrderRecord; justPlace
             <strong className="order-card-id">{order.orderNumber}</strong>
             <p className="order-meta">
               Bill {order.billNumber} · {order.customerName}
+              {formatOrderPlacedAt(order.orderPlacedAt)
+                ? ` · ${formatOrderPlacedAt(order.orderPlacedAt)}`
+                : ''}
             </p>
           </div>
           <span className={`order-status-badge order-status-badge--${orderStatusTone(order.orderStatus)}`}>

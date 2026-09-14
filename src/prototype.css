@@ -3679,6 +3679,26 @@
   }
 }
 
+.admin-overview-orders-section {
+  padding: 1rem 1.25rem 1.25rem;
+  margin-bottom: 0.75rem;
+}
+
+.admin-overview-section-title {
+  margin: 0 0 0.35rem;
+}
+
+.admin-overview-section-hint {
+  margin: 0 0 1rem;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  line-height: 1.5;
+}
+
+.admin-stat-grid-orders {
+  margin-bottom: 0;
+}
+
 .admin-stat-card {
   display: flex;
   align-items: center;

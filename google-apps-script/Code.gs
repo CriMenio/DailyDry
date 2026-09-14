@@ -533,9 +533,39 @@ function customerOrderColumnIndices(headerRow) {
     lineAmount: idx(['order amount'], 9),
     shipping: idx(['shipping charges'], 10),
     total: idx(['total amount'], 11),
+    orderDateTime: idx(['datetime', 'order datetime', 'order date time', 'order date & time'], -1),
     paymentStatus: idx(['payment status'], 12),
     orderStatus: idx(['order status'], 13),
   };
+}
+
+function formatOrderDateTime(date) {
+  const tz = Session.getScriptTimeZone() || 'Asia/Kolkata';
+  return Utilities.formatDate(date || new Date(), tz, 'yyyy-MM-dd HH:mm:ss');
+}
+
+function appendCustomerOrderLine(sh, cols, lineValues) {
+  const width = Math.max(sh.getLastColumn(), cols.orderStatus + 1);
+  const row = [];
+  for (let c = 0; c < width; c++) row[c] = '';
+  row[cols.id] = nextAutoId(sh);
+  row[cols.customerName] = lineValues.customerName;
+  row[cols.mobile] = lineValues.mobile;
+  row[cols.address] = lineValues.address;
+  row[cols.email] = lineValues.email;
+  row[cols.orderNumber] = lineValues.orderNumber;
+  row[cols.billNumber] = lineValues.billNumber;
+  row[cols.product] = lineValues.product;
+  row[cols.qty] = lineValues.qty;
+  row[cols.lineAmount] = lineValues.lineAmount;
+  row[cols.shipping] = lineValues.shipping;
+  row[cols.total] = lineValues.total;
+  if (cols.orderDateTime >= 0 && lineValues.orderDateTime) {
+    row[cols.orderDateTime] = lineValues.orderDateTime;
+  }
+  row[cols.paymentStatus] = lineValues.paymentStatus;
+  row[cols.orderStatus] = lineValues.orderStatus;
+  sh.appendRow(row);
 }
 
 function nextOrderNumber() {
@@ -677,26 +707,29 @@ function createOrder(body) {
     throw new Error('Unsupported payment method');
   }
 
+  const placedAt = formatOrderDateTime(new Date());
+  const header = shOrders.getRange(1, 1, 1, shOrders.getLastColumn()).getValues()[0];
+  const orderCols = customerOrderColumnIndices(header);
+
   for (let j = 0; j < items.length; j++) {
     const line = items[j];
     const lineAmount = line.quantity * line.unitPrice;
-    const id = nextAutoId(shOrders);
-    shOrders.appendRow([
-      id,
-      customer.name,
-      customer.mobile,
-      address,
-      customer.email,
-      orderNumber,
-      billNumber,
-      line.name,
-      line.quantity,
-      lineAmount,
-      expectedShipping,
-      expectedTotal,
-      paymentStatus,
-      'Order Placed',
-    ]);
+    appendCustomerOrderLine(shOrders, orderCols, {
+      customerName: customer.name,
+      mobile: customer.mobile,
+      address: address,
+      email: customer.email,
+      orderNumber: orderNumber,
+      billNumber: billNumber,
+      product: line.name,
+      qty: line.quantity,
+      lineAmount: lineAmount,
+      shipping: expectedShipping,
+      total: expectedTotal,
+      orderDateTime: placedAt,
+      paymentStatus: paymentStatus,
+      orderStatus: 'Order Placed',
+    });
   }
 
   return {
@@ -716,6 +749,7 @@ function createOrder(body) {
       totalAmount: expectedTotal,
       paymentStatus: paymentStatus,
       orderStatus: 'Order Placed',
+      orderPlacedAt: placedAt,
     },
   };
 }
@@ -744,6 +778,8 @@ function groupOrderRows(data) {
         totalAmount: Number(row[cols.total]) || 0,
         paymentStatus: row[cols.paymentStatus],
         orderStatus: row[cols.orderStatus],
+        orderPlacedAt:
+          cols.orderDateTime >= 0 ? String(row[cols.orderDateTime] || '').trim() : '',
       };
     }
     const qty = Number(row[cols.qty]) || 0;
@@ -1190,6 +1226,7 @@ function setupAllSheetsOnce() {
         'Order Amount',
         'Shipping Charges',
         'Total Amount',
+        'DateTime',
         'Payment Status',
         'Order Status',
       ],

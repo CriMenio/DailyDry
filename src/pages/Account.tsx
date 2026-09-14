@@ -16,6 +16,7 @@ import { formatPrice } from '../data/products';
 import { RequireAuth } from '../components/RequireAuth';
 import OrderTrackingTimeline from '../components/OrderTrackingTimeline';
 import { formatPaymentStatusLabel } from '../config/orderStatus';
+import { formatOrderPlacedAt } from '../config/orderDisplay';
 
 function profileInitials(name: string): string {
   const parts = name.trim().split(/\s+/).filter(Boolean);
@@ -158,6 +159,9 @@ function AccountContent() {
                           <strong className="order-card-id">Order #{order.orderId}</strong>
                           <p className="order-meta">
                             Bill {order.billNumber} · Ref {order.orderNumber}
+                            {formatOrderPlacedAt(order.orderPlacedAt)
+                              ? ` · ${formatOrderPlacedAt(order.orderPlacedAt)}`
+                              : ''}
                           </p>
                         </div>
                         <span

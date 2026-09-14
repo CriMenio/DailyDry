@@ -83,7 +83,7 @@ function AdminDashboardContent() {
   }, [screen, customerView, loadCustomer]);
 
   useEffect(() => {
-    if (screen === 'onlineOrders') loadOnlineOrders();
+    if (screen === 'onlineOrders' || screen === 'overview') loadOnlineOrders();
   }, [screen, loadOnlineOrders]);
 
   const handleScreenChange = (next: AdminScreen) => {
@@ -108,7 +108,17 @@ function AdminDashboardContent() {
 
   return (
     <AdminShell screen={screen} onScreenChange={handleScreenChange} onSignOut={signOut}>
-      {screen === 'overview' && <AdminStockOverview onRefresh={refresh} loading={loading} />}
+      {screen === 'overview' && (
+        <AdminStockOverview
+          onRefresh={() => {
+            void refresh();
+            void loadOnlineOrders();
+          }}
+          loading={loading}
+          orders={onlineOrders}
+          ordersLoading={onlineLoading}
+        />
+      )}
 
       {screen === 'stock' && stockView === 'list' && (
         <AdminStockInventoryIndex
