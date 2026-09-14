@@ -6,7 +6,9 @@ import type {
   OrderRecord,
   RetailOrderRow,
   ReviewRecord,
+  StoreSettings,
 } from '../types/api';
+import { DEFAULT_STORE_SHIPPING } from '../config/commerce';
 
 const API_BASE = import.meta.env.VITE_API_URL?.replace(/\/$/, '') || '/api';
 
@@ -61,9 +63,16 @@ export async function loginUser(mobile: string, password: string): Promise<{ use
   return request('login', { mobile, password });
 }
 
-export async function fetchInventory(): Promise<InventoryRow[]> {
-  const data = await request<{ inventory: InventoryRow[] }>('getInventory');
-  return data.inventory || [];
+export async function fetchInventory(): Promise<{ inventory: InventoryRow[]; storeSettings: StoreSettings }> {
+  const data = await request<{ inventory: InventoryRow[]; storeSettings?: StoreSettings }>('getInventory');
+  const storeSettings = data.storeSettings;
+  return {
+    inventory: data.inventory || [],
+    storeSettings: {
+      shippingFee: Number(storeSettings?.shippingFee) || DEFAULT_STORE_SHIPPING.shippingFee,
+      freeShippingMin: Number(storeSettings?.freeShippingMin) || DEFAULT_STORE_SHIPPING.freeShippingMin,
+    },
+  };
 }
 
 export async function placeOrder(input: {
@@ -195,6 +204,19 @@ export async function adminFetchOrders(): Promise<OrderRecord[]> {
 
 export async function adminUpdateOrderStatus(orderNumber: string, orderStatus: string): Promise<void> {
   await request('adminUpdateOrderStatus', { orderNumber, orderStatus });
+}
+
+export async function adminUpdateStoreSettings(input: {
+  shippingFee: number;
+  freeShippingMin: number;
+}): Promise<StoreSettings> {
+  const data = await request<{ storeSettings: StoreSettings }>('adminUpdateStoreSettings', input);
+  return data.storeSettings;
+}
+
+export async function adminFetchStoreSettings(): Promise<StoreSettings> {
+  const data = await request<{ storeSettings: StoreSettings }>('adminGetStoreSettings');
+  return data.storeSettings;
 }
 
 export async function adminUpdateInventory(

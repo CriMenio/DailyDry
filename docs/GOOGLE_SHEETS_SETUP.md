@@ -57,6 +57,15 @@ Product link: reviews store `[[product:Exact Product Name]]` prefix in **You Rev
 - **Weight**: pack size shown on the shop (e.g. `250g`). Header may be `Weight` or `Weigh` — the script detects it.
 - **Remarks1** / **Remarks2**: free-text notes in admin. When “Show on shop” is off, **Remarks1** is set to `DISABLED` (listing flag).
 
+### `StoreSettings` *(website shipping — one data row)*
+
+| ID | ShippingFee | FreeShippingMin |
+
+- **ShippingFee**: flat delivery charge (₹) when free shipping does not apply.
+- **FreeShippingMin**: cart subtotal must be **strictly above** this amount for free shipping (same rule as before: `999` → free from ₹1000+).
+- Created by **`setupAllSheetsOnce`** (default row: `49` / `999`). Admin can edit under **Admin → Shipping**.
+- If the tab is missing, open **Admin → Shipping** and save once (or re-run **`setupAllSheetsOnce`**).
+
 ### `RetailsOrder(Offline)` *(manual / field sales — not used by website yet)*
 
 | ID | BillNo | ShopName/Customer | Mobile | Whatsapp (yes/no) | Area | Address | Shop type | Visit Date | Status | ProductName | Qty | ALFree | CAFree | OrderAmount | Payment | PaymentStatus | PaymentDueDate | LastFollowUp | Remarks1 | Remarks2 |

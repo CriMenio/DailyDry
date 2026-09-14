@@ -11,6 +11,7 @@ import AdminRetailsOrderForm from './views/AdminRetailsOrderForm';
 import AdminCustomerOrderIndex from './views/AdminCustomerOrderIndex';
 import AdminCustomerOrderForm from './views/AdminCustomerOrderForm';
 import AdminOnlineOrdersIndex from './views/AdminOnlineOrdersIndex';
+import AdminShippingSettings from './views/AdminShippingSettings';
 import {
   adminFetchCustomerOrdersOffline,
   adminFetchOrders,
@@ -141,6 +142,8 @@ function AdminDashboardContent() {
           onRefresh={loadOnlineOrders}
         />
       )}
+
+      {screen === 'shipping' && <AdminShippingSettings />}
 
       {screen === 'retail' && retailView === 'list' && (
         <AdminRetailsOrderIndex

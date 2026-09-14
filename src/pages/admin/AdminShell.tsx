@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
+import { Settings } from 'lucide-react';
 import type { ReactNode } from 'react';
 import {
   LayoutDashboard,
@@ -19,6 +20,7 @@ import Logo from '../../components/Logo';
 const ICONS: Record<AdminScreen, typeof LayoutDashboard> = {
   overview: LayoutDashboard,
   stock: Package,
+  shipping: Settings,
   onlineOrders: Truck,
   retail: Store,
   customer: ClipboardList,

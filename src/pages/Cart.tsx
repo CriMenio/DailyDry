@@ -3,7 +3,7 @@ import { ShoppingBag } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
 import { formatPrice } from '../data/products';
-import { calcShipping, FREE_SHIPPING_MIN } from '../config/commerce';
+import { calcShipping, freeShippingThresholdLabel } from '../config/commerce';
 import { useInventory } from '../context/InventoryContext';
 
 function CartPageHero({ itemCount }: { itemCount: number }) {
@@ -30,8 +30,8 @@ function CartPageHero({ itemCount }: { itemCount: number }) {
 export default function Cart() {
   const { items, updateQuantity, removeFromCart, subtotal, totalItems } = useCart();
   const { isAuthenticated } = useAuth();
-  const { getStock } = useInventory();
-  const shipping = calcShipping(subtotal);
+  const { getStock, storeSettings } = useInventory();
+  const shipping = calcShipping(subtotal, storeSettings);
   const total = subtotal + shipping;
 
   if (items.length === 0) {
@@ -110,7 +110,7 @@ export default function Cart() {
             </div>
             {shipping > 0 && (
               <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: '0.75rem' }}>
-                Free shipping on orders above ₹{FREE_SHIPPING_MIN}
+                Free shipping on orders above ₹{freeShippingThresholdLabel(storeSettings)}
               </p>
             )}
             <div className="summary-row total">

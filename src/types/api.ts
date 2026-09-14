@@ -20,6 +20,11 @@ export interface InventoryRow {
   enabled: boolean;
 }
 
+export interface StoreSettings {
+  shippingFee: number;
+  freeShippingMin: number;
+}
+
 export interface OrderLine {
   productId: string;
   name: string;

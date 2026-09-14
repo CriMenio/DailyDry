@@ -1,6 +1,18 @@
-/** Free shipping when subtotal is strictly above this amount (₹999 → free at ₹1000+). */
-export const FREE_SHIPPING_MIN = 999;
-export const SHIPPING_FEE = 49;
+/** Fallback when sheet settings are unavailable (matches StoreSettings defaults). */
+export const DEFAULT_STORE_SHIPPING = {
+  shippingFee: 49,
+  freeShippingMin: 999,
+} as const;
+
+export type StoreShippingSettings = {
+  shippingFee: number;
+  freeShippingMin: number;
+};
+
+/** @deprecated Use storeSettings from InventoryContext */
+export const FREE_SHIPPING_MIN = DEFAULT_STORE_SHIPPING.freeShippingMin;
+/** @deprecated Use storeSettings from InventoryContext */
+export const SHIPPING_FEE = DEFAULT_STORE_SHIPPING.shippingFee;
 
 /** Customer support / WhatsApp (10-digit mobile, no +91). */
 export const STORE_PHONE = '8655933503';
@@ -70,8 +82,22 @@ export const ORDER_STATUSES = [
 
 export type OrderStatus = (typeof ORDER_STATUSES)[number];
 
-export function calcShipping(subtotal: number): number {
-  return subtotal > FREE_SHIPPING_MIN ? 0 : SHIPPING_FEE;
+export function calcShipping(
+  subtotal: number,
+  settings: StoreShippingSettings = DEFAULT_STORE_SHIPPING
+): number {
+  return subtotal > settings.freeShippingMin ? 0 : settings.shippingFee;
+}
+
+/** Customer-facing: free when subtotal is strictly above this amount. */
+export function freeShippingThresholdLabel(settings: StoreShippingSettings): string {
+  return String(settings.freeShippingMin);
+}
+
+export function shippingPolicySummary(settings: StoreShippingSettings): string {
+  const fee = settings.shippingFee;
+  const min = settings.freeShippingMin;
+  return `Free shipping on orders above ₹${min}. Orders at ₹${min} or below have a flat ₹${fee} delivery charge.`;
 }
 
 export function lowStockMessage(stock: number): string | null {

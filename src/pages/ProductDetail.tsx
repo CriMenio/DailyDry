@@ -7,7 +7,7 @@ import { useWishlist } from '../context/WishlistContext';
 import { useToast } from '../context/ToastContext';
 import ProductImage from '../components/ProductImage';
 import ProductGrid from '../components/ProductGrid';
-import { FREE_SHIPPING_MIN, lowStockMessage } from '../config/commerce';
+import { freeShippingThresholdLabel, lowStockMessage } from '../config/commerce';
 import { useInventory } from '../context/InventoryContext';
 import ProductReviews from '../components/ProductReviews';
 
@@ -18,7 +18,7 @@ export default function ProductDetail() {
   const { addToCart, isInCart } = useCart();
   const { toggleWishlist, isInWishlist } = useWishlist();
   const { showToast } = useToast();
-  const { getStock, isEnabled } = useInventory();
+  const { getStock, isEnabled, storeSettings } = useInventory();
   const stock = product ? getStock(product.id) : 0;
   const enabled = product ? isEnabled(product.id) : false;
   const stockLabel = product ? lowStockMessage(stock) : null;
@@ -135,7 +135,7 @@ export default function ProductDetail() {
                 <span><strong>Weight:</strong> {product.weight}</span>
                 <span><strong>Category:</strong> {product.category.replace('-', ' ')}</span>
                 <span><strong>Availability:</strong> {!enabled || stock <= 0 ? 'Out of Stock' : 'In Stock'}</span>
-                <span><strong>Free Shipping:</strong> On orders above ₹{FREE_SHIPPING_MIN}</span>
+                <span><strong>Free Shipping:</strong> On orders above ₹{freeShippingThresholdLabel(storeSettings)}</span>
               </div>
             </div>
           </div>

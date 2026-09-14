@@ -4,7 +4,7 @@ import { Banknote, Smartphone } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
-import { calcShipping } from '../config/commerce';
+import { calcShipping, freeShippingThresholdLabel } from '../config/commerce';
 import { PAYMENT_METHOD_COD, PAYMENT_METHOD_RAZORPAY } from '../config/orderStatus';
 import { formatPrice } from '../data/products';
 import { placeOrder } from '../services/api';
@@ -23,10 +23,10 @@ type PaymentMethod = typeof PAYMENT_METHOD_COD | typeof PAYMENT_METHOD_RAZORPAY;
 function CheckoutContent() {
   const { items, subtotal, clearCart } = useCart();
   const { user } = useAuth();
-  const { getStock } = useInventory();
+  const { getStock, storeSettings } = useInventory();
   const { showToast } = useToast();
   const navigate = useNavigate();
-  const shipping = calcShipping(subtotal);
+  const shipping = calcShipping(subtotal, storeSettings);
   const total = subtotal + shipping;
   const amountPaise = Math.round(total * 100);
 
@@ -259,7 +259,7 @@ function CheckoutContent() {
             <span>Total</span>
             <span>{formatPrice(total)}</span>
           </div>
-          <p className="shipping-note">Free shipping on orders above ₹999</p>
+          <p className="shipping-note">Free shipping on orders above ₹{freeShippingThresholdLabel(storeSettings)}</p>
         </aside>
       </div>
     </section>

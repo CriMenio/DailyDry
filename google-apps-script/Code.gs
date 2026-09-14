@@ -12,7 +12,11 @@ const SHEETS = {
   STOCK: 'StockInventory',
   RETAIL_OFFLINE: 'RetailsOrder(Offline)',
   CUSTOMER_OFFLINE: 'CustomerOrder(Offline)',
+  STORE_SETTINGS: 'StoreSettings',
 };
+
+const DEFAULT_SHIPPING_FEE = 49;
+const DEFAULT_FREE_SHIPPING_MIN = 999;
 
 const REVIEW_PRODUCT_PREFIX = '[[product:';
 
@@ -38,7 +42,13 @@ function routeAction(body) {
     case 'login':
       return login(body);
     case 'getInventory':
-      return { ok: true, inventory: getInventory() };
+      return { ok: true, inventory: getInventory(), storeSettings: getStoreSettings() };
+    case 'adminGetStoreSettings':
+      verifyAdminToken(body.adminToken);
+      return { ok: true, storeSettings: getStoreSettings() };
+    case 'adminUpdateStoreSettings':
+      adminUpdateStoreSettings(body);
+      return { ok: true, storeSettings: getStoreSettings() };
     case 'createOrder':
       return createOrder(body);
     case 'getMyOrders':
@@ -265,6 +275,84 @@ function getInventory() {
     });
   }
   return rows;
+}
+
+function defaultStoreSettings() {
+  return {
+    shippingFee: DEFAULT_SHIPPING_FEE,
+    freeShippingMin: DEFAULT_FREE_SHIPPING_MIN,
+  };
+}
+
+function storeSettingsColumnIndices(headerRow) {
+  const norm = function (v) {
+    return String(v || '')
+      .trim()
+      .toLowerCase()
+      .replace(/[^a-z0-9]/g, '');
+  };
+  const idx = function (labels, fallback) {
+    for (let c = 0; c < headerRow.length; c++) {
+      const n = norm(headerRow[c]);
+      for (let L = 0; L < labels.length; L++) {
+        if (n === labels[L] || n.indexOf(labels[L]) !== -1) return c;
+      }
+    }
+    return fallback;
+  };
+  return {
+    id: idx(['id'], 0),
+    shippingFee: idx(['shippingfee', 'shippingcharge', 'deliveryfee'], 1),
+    freeShippingMin: idx(['freeshippingmin', 'freeshippingthreshold', 'freeshiippingmin'], 2),
+  };
+}
+
+function getStoreSettings() {
+  try {
+    const sh = sheet(SHEETS.STORE_SETTINGS);
+    const data = sh.getDataRange().getValues();
+    if (data.length < 2) return defaultStoreSettings();
+    const cols = storeSettingsColumnIndices(data[0]);
+    const row = data[1];
+    const shippingFee = Math.max(0, Number(row[cols.shippingFee]));
+    const freeShippingMin = Math.max(0, Number(row[cols.freeShippingMin]));
+    return {
+      shippingFee: isFinite(shippingFee) ? shippingFee : DEFAULT_SHIPPING_FEE,
+      freeShippingMin: isFinite(freeShippingMin) ? freeShippingMin : DEFAULT_FREE_SHIPPING_MIN,
+    };
+  } catch (e) {
+    return defaultStoreSettings();
+  }
+}
+
+function calcShippingForSubtotal(subtotal, settings) {
+  const cfg = settings || getStoreSettings();
+  const sub = Number(subtotal) || 0;
+  if (sub > cfg.freeShippingMin) return 0;
+  return Math.max(0, Number(cfg.shippingFee) || 0);
+}
+
+function seedStoreSettingsIfEmpty() {
+  const sh = sheet(SHEETS.STORE_SETTINGS);
+  if (sh.getLastRow() >= 2) return;
+  sh.appendRow([1, DEFAULT_SHIPPING_FEE, DEFAULT_FREE_SHIPPING_MIN]);
+}
+
+function adminUpdateStoreSettings(body) {
+  verifyAdminToken(body.adminToken);
+  const shippingFee = Number(body.shippingFee);
+  const freeShippingMin = Number(body.freeShippingMin);
+  if (!isFinite(shippingFee) || shippingFee < 0 || !isFinite(freeShippingMin) || freeShippingMin < 0) {
+    throw new Error('Invalid shipping settings');
+  }
+  const ss = getSpreadsheet();
+  let sh = ss.getSheetByName(SHEETS.STORE_SETTINGS);
+  if (!sh) {
+    sh = ss.insertSheet(SHEETS.STORE_SETTINGS);
+    sh.getRange(1, 1, 1, 3).setValues([['ID', 'ShippingFee', 'FreeShippingMin']]);
+  }
+  seedStoreSettingsIfEmpty();
+  sh.getRange(2, 2, 1, 2).setValues([[shippingFee, freeShippingMin]]);
 }
 
 /** Map StockInventory header row → 0-based column indices (supports Category before or after ProductName). */
@@ -547,15 +635,38 @@ function createOrder(body) {
   const address = body.address || customer.address;
   const shOrders = sheet(SHEETS.CUSTOMER_ORDERS);
   const paymentMethod = String(body.paymentMethod || 'COD').trim().toUpperCase();
-  let paymentStatus = 'COD';
 
+  let computedSubtotal = 0;
+  for (let j = 0; j < items.length; j++) {
+    const line = items[j];
+    const qty = Number(line.quantity) || 0;
+    const unit = Number(line.unitPrice) || 0;
+    computedSubtotal += qty * unit;
+  }
+  computedSubtotal = Math.round(computedSubtotal * 100) / 100;
+  const orderAmount = Math.round(Number(body.orderAmount) * 100) / 100;
+  if (Math.abs(orderAmount - computedSubtotal) > 0.02) {
+    throw new Error('Order subtotal does not match cart');
+  }
+  const shippingSettings = getStoreSettings();
+  const expectedShipping = calcShippingForSubtotal(computedSubtotal, shippingSettings);
+  const shippingCharges = Math.round(Number(body.shippingCharges) * 100) / 100;
+  if (Math.abs(shippingCharges - expectedShipping) > 0.02) {
+    throw new Error('Shipping charge is out of date. Refresh the page and try again.');
+  }
+  const expectedTotal = Math.round((computedSubtotal + expectedShipping) * 100) / 100;
+  const totalAmount = Math.round(Number(body.totalAmount) * 100) / 100;
+  if (Math.abs(totalAmount - expectedTotal) > 0.02) {
+    throw new Error('Order total is out of date. Refresh the page and try again.');
+  }
+
+  let paymentStatus = 'COD';
   if (paymentMethod === 'COD') {
     paymentStatus = 'COD';
   } else if (paymentMethod === 'RAZORPAY') {
     const paymentId = String(body.razorpayPaymentId || '').trim();
     const razorpayOrderId = String(body.razorpayOrderId || '').trim();
     const paymentToken = String(body.paymentToken || '').trim();
-    const totalAmount = Number(body.totalAmount);
     if (!paymentId || !razorpayOrderId || !paymentToken) {
       throw new Error('Payment verification missing. Complete payment before placing the order.');
     }
@@ -581,8 +692,8 @@ function createOrder(body) {
       line.name,
       line.quantity,
       lineAmount,
-      body.shippingCharges,
-      body.totalAmount,
+      expectedShipping,
+      expectedTotal,
       paymentStatus,
       'Order Placed',
     ]);
@@ -600,9 +711,9 @@ function createOrder(body) {
       email: customer.email,
       address,
       items,
-      orderAmount: body.orderAmount,
-      shippingCharges: body.shippingCharges,
-      totalAmount: body.totalAmount,
+      orderAmount: computedSubtotal,
+      shippingCharges: expectedShipping,
+      totalAmount: expectedTotal,
       paymentStatus: paymentStatus,
       orderStatus: 'Order Placed',
     },
@@ -1101,6 +1212,10 @@ function setupAllSheetsOnce() {
       ],
     ],
     [
+      SHEETS.STORE_SETTINGS,
+      ['ID', 'ShippingFee', 'FreeShippingMin'],
+    ],
+    [
       SHEETS.RETAIL_OFFLINE,
       [
         'ID',
@@ -1154,6 +1269,7 @@ function setupAllSheetsOnce() {
     if (!sh) sh = ss.insertSheet(name);
     sh.getRange(1, 1, 1, headers.length).setValues([headers]);
   });
+  seedStoreSettingsIfEmpty();
   Logger.log('All sheet tabs and headers are ready.');
 }
 

@@ -1,8 +1,9 @@
 import { createContext, useCallback, useContext, useEffect, useState, type ReactNode } from 'react';
-import type { InventoryRow } from '../types/api';
+import type { InventoryRow, StoreSettings } from '../types/api';
 import { fetchInventory } from '../services/api';
 import type { Product } from '../data/products';
 import { getProductById, inventoryRowToProduct, setShopCatalogFromSheet } from '../data/products';
+import { DEFAULT_STORE_SHIPPING } from '../config/commerce';
 
 function normalizeName(name: string) {
   return name.trim().toLowerCase();
@@ -11,6 +12,7 @@ function normalizeName(name: string) {
 interface InventoryContextType {
   inventory: Record<string, InventoryRow>;
   stockRows: InventoryRow[];
+  storeSettings: StoreSettings;
   loading: boolean;
   refresh: () => Promise<void>;
   getStock: (productId: string) => number;
@@ -23,23 +25,26 @@ const InventoryContext = createContext<InventoryContextType | undefined>(undefin
 export function InventoryProvider({ children }: { children: ReactNode }) {
   const [inventory, setInventory] = useState<Record<string, InventoryRow>>({});
   const [stockRows, setStockRows] = useState<InventoryRow[]>([]);
+  const [storeSettings, setStoreSettings] = useState<StoreSettings>({ ...DEFAULT_STORE_SHIPPING });
   const [loading, setLoading] = useState(true);
 
   const refresh = useCallback(async () => {
     setLoading(true);
     try {
-      const rows = await fetchInventory();
+      const { inventory: rows, storeSettings: settings } = await fetchInventory();
       const map: Record<string, InventoryRow> = {};
       rows.forEach((r) => {
         map[normalizeName(r.productName)] = r;
       });
       setInventory(map);
       setStockRows(rows);
+      setStoreSettings(settings);
       const catalog = rows.map(inventoryRowToProduct);
       setShopCatalogFromSheet(catalog);
     } catch {
       setInventory({});
       setStockRows([]);
+      setStoreSettings({ ...DEFAULT_STORE_SHIPPING });
       setShopCatalogFromSheet(null);
     } finally {
       setLoading(false);
@@ -63,7 +68,16 @@ export function InventoryProvider({ children }: { children: ReactNode }) {
 
   return (
     <InventoryContext.Provider
-      value={{ inventory, stockRows, loading, refresh, getStock, isEnabled, getRowByProductId }}
+      value={{
+        inventory,
+        stockRows,
+        storeSettings,
+        loading,
+        refresh,
+        getStock,
+        isEnabled,
+        getRowByProductId,
+      }}
     >
       {children}
     </InventoryContext.Provider>
