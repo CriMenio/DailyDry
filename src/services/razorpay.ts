@@ -33,6 +33,11 @@ export function getRazorpayKeyId(): string {
   return key;
 }
 
+export function isRazorpayLiveMode(): boolean {
+  const key = import.meta.env.VITE_RAZORPAY_KEY_ID?.trim() || '';
+  return key.startsWith('rzp_live_');
+}
+
 export async function createRazorpayOrder(amountPaise: number): Promise<{ orderId: string; amount: number }> {
   const res = await fetch('/razorpay/create-order', {
     method: 'POST',

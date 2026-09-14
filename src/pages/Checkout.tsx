@@ -14,6 +14,7 @@ import {
   loadRazorpayCheckout,
   verifyRazorpayPayment,
   type RazorpayCheckoutResponse,
+  isRazorpayLiveMode,
 } from '../services/razorpay';
 import { RequireAuth } from '../components/RequireAuth';
 import { useInventory } from '../context/InventoryContext';
@@ -29,6 +30,7 @@ function CheckoutContent() {
   const shipping = calcShipping(subtotal, storeSettings);
   const total = subtotal + shipping;
   const amountPaise = Math.round(total * 100);
+  const razorpayLive = isRazorpayLiveMode();
 
   const [address, setAddress] = useState(user?.address || '');
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>(PAYMENT_METHOD_COD);
@@ -97,7 +99,7 @@ function CheckoutContent() {
         amount: amountPaise,
         currency: 'INR',
         name: 'Daily Dry',
-        description: 'Order payment (test mode)',
+        description: razorpayLive ? 'Daily Dry order payment' : 'Order payment (test mode)',
         order_id: orderId,
         prefill: {
           name: user?.name || '',
@@ -161,7 +163,9 @@ function CheckoutContent() {
         : 'Place order (COD)'
       : submitting
         ? 'Opening payment…'
-        : 'Pay online (test)';
+        : razorpayLive
+          ? 'Pay online'
+          : 'Pay online (test)';
 
   return (
     <section className="checkout-page">
@@ -230,7 +234,11 @@ function CheckoutContent() {
                 </span>
                 <span className="checkout-payment-copy">
                   <strong>Pay online (UPI / card)</strong>
-                  <small>Razorpay test mode — no real charge</small>
+                  <small>
+                    {razorpayLive
+                      ? 'UPI, cards & wallets — secure Razorpay checkout'
+                      : 'Razorpay test mode — no real charge'}
+                  </small>
                 </span>
               </label>
             </div>

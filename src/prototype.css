@@ -2643,9 +2643,112 @@
 
 .admin-online-order-lines {
   margin: 0 0 0.85rem;
-  padding-left: 1.1rem;
+  padding-left: 0;
+  list-style: none;
   font-size: 0.88rem;
   color: var(--text-dark);
+}
+
+.admin-online-order-lines li {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.35rem 0;
+  border-bottom: 1px dashed var(--border);
+}
+
+.admin-online-order-lines li:last-child {
+  border-bottom: none;
+}
+
+.admin-online-toolbar-actions {
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.admin-online-search {
+  font: inherit;
+  padding: 0.45rem 0.65rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  min-width: min(100%, 14rem);
+  background: var(--white);
+}
+
+.admin-online-customer,
+.admin-online-items {
+  margin-bottom: 0.85rem;
+}
+
+.admin-online-customer-title {
+  margin: 0 0 0.4rem;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.admin-online-customer-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: 0.88rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.admin-online-customer-list li {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.4rem;
+  color: var(--text-dark);
+}
+
+.admin-online-customer-address {
+  align-items: flex-start;
+}
+
+.admin-online-totals {
+  font-size: 0.85rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  margin-top: 0.5rem;
+}
+
+.admin-online-totals div {
+  display: flex;
+  justify-content: space-between;
+  color: var(--text-muted);
+}
+
+.admin-online-order-badges {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.35rem;
+}
+
+.admin-online-badge {
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 0.2rem 0.55rem;
+  border-radius: 999px;
+  background: var(--white);
+  border: 1px solid var(--border);
+}
+
+.admin-online-badge--payment {
+  color: var(--purple-dark);
+}
+
+.admin-online-tracking {
+  margin-bottom: 0.75rem;
+  padding: 0.65rem 0;
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
 }
 
 .admin-online-order-status-row {
