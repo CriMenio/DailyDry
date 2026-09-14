@@ -15,6 +15,7 @@ import type { OrderRecord } from '../types/api';
 import { formatPrice } from '../data/products';
 import { RequireAuth } from '../components/RequireAuth';
 import OrderTrackingTimeline from '../components/OrderTrackingTimeline';
+import { formatPaymentStatusLabel } from '../config/orderStatus';
 
 function profileInitials(name: string): string {
   const parts = name.trim().split(/\s+/).filter(Boolean);
@@ -197,7 +198,7 @@ function AccountContent() {
                           <span
                             className={`order-payment-pill order-payment-pill--${orderStatusTone(order.paymentStatus)}`}
                           >
-                            Payment: {order.paymentStatus === 'COD' ? 'Cash on delivery' : order.paymentStatus}
+                            Payment: {formatPaymentStatusLabel(order.paymentStatus)}
                           </span>
                         </div>
                       </div>

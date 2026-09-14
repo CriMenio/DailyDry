@@ -478,6 +478,28 @@ function nextBillNumber() {
   return 'BILL-' + today + '-' + String(max + 1).padStart(3, '0');
 }
 
+function hmacSha256Hex(message, secret) {
+  const sig = Utilities.computeHmacSha256Signature(String(message), String(secret));
+  return sig
+    .map(function (b) {
+      const v = (b < 0 ? b + 256 : b).toString(16);
+      return v.length === 1 ? '0' + v : v;
+    })
+    .join('');
+}
+
+function verifyRazorpayPaymentToken(paymentId, razorpayOrderId, amountPaise, token) {
+  const secret = PropertiesService.getScriptProperties().getProperty('RAZORPAY_KEY_SECRET');
+  if (!secret) {
+    throw new Error('Online payment is not configured in Apps Script (set RAZORPAY_KEY_SECRET in Script properties)');
+  }
+  const message = paymentId + '|' + razorpayOrderId + '|' + amountPaise;
+  const expected = hmacSha256Hex(message, secret);
+  if (expected !== String(token)) {
+    throw new Error('Invalid payment verification');
+  }
+}
+
 function createOrder(body) {
   const userId = verifyToken(body.token);
   const shUser = sheet(SHEETS.USER_SIGNUP);
@@ -525,10 +547,24 @@ function createOrder(body) {
   const address = body.address || customer.address;
   const shOrders = sheet(SHEETS.CUSTOMER_ORDERS);
   const paymentMethod = String(body.paymentMethod || 'COD').trim().toUpperCase();
-  if (paymentMethod !== 'COD') {
-    throw new Error('Only Cash on Delivery (COD) is available right now');
+  let paymentStatus = 'COD';
+
+  if (paymentMethod === 'COD') {
+    paymentStatus = 'COD';
+  } else if (paymentMethod === 'RAZORPAY') {
+    const paymentId = String(body.razorpayPaymentId || '').trim();
+    const razorpayOrderId = String(body.razorpayOrderId || '').trim();
+    const paymentToken = String(body.paymentToken || '').trim();
+    const totalAmount = Number(body.totalAmount);
+    if (!paymentId || !razorpayOrderId || !paymentToken) {
+      throw new Error('Payment verification missing. Complete payment before placing the order.');
+    }
+    const amountPaise = Math.round(totalAmount * 100);
+    verifyRazorpayPaymentToken(paymentId, razorpayOrderId, amountPaise, paymentToken);
+    paymentStatus = 'Paid';
+  } else {
+    throw new Error('Unsupported payment method');
   }
-  const paymentStatus = 'COD';
 
   for (let j = 0; j < items.length; j++) {
     const line = items[j];

@@ -73,6 +73,9 @@ export async function placeOrder(input: {
   shippingCharges: number;
   totalAmount: number;
   paymentMethod?: string;
+  razorpayPaymentId?: string;
+  razorpayOrderId?: string;
+  paymentToken?: string;
 }): Promise<{ order: OrderRecord }> {
   return request('createOrder', input);
 }

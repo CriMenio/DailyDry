@@ -5,11 +5,20 @@ import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
 import { calcShipping } from '../config/commerce';
-import { PAYMENT_METHOD_COD } from '../config/orderStatus';
+import { PAYMENT_METHOD_COD, PAYMENT_METHOD_RAZORPAY } from '../config/orderStatus';
 import { formatPrice } from '../data/products';
 import { placeOrder } from '../services/api';
+import {
+  createRazorpayOrder,
+  getRazorpayKeyId,
+  loadRazorpayCheckout,
+  verifyRazorpayPayment,
+  type RazorpayCheckoutResponse,
+} from '../services/razorpay';
 import { RequireAuth } from '../components/RequireAuth';
 import { useInventory } from '../context/InventoryContext';
+
+type PaymentMethod = typeof PAYMENT_METHOD_COD | typeof PAYMENT_METHOD_RAZORPAY;
 
 function CheckoutContent() {
   const { items, subtotal, clearCart } = useCart();
@@ -19,53 +28,140 @@ function CheckoutContent() {
   const navigate = useNavigate();
   const shipping = calcShipping(subtotal);
   const total = subtotal + shipping;
+  const amountPaise = Math.round(total * 100);
 
   const [address, setAddress] = useState(user?.address || '');
-  const [paymentMethod, setPaymentMethod] = useState<typeof PAYMENT_METHOD_COD>(PAYMENT_METHOD_COD);
+  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>(PAYMENT_METHOD_COD);
   const [submitting, setSubmitting] = useState(false);
+
+  const orderPayload = {
+    address: address.trim(),
+    orderAmount: subtotal,
+    shippingCharges: shipping,
+    totalAmount: total,
+    items: items.map(({ product, quantity }) => ({
+      productId: product.id,
+      name: product.name,
+      quantity,
+      unitPrice: product.price,
+    })),
+  };
 
   if (items.length === 0) {
     return (
       <div className="container page-content">
-        <p>Your cart is empty. <Link to="/shop">Continue shopping</Link></p>
+        <p>
+          Your cart is empty. <Link to="/shop">Continue shopping</Link>
+        </p>
       </div>
     );
   }
 
-  const handleSubmit = async (e: FormEvent) => {
-    e.preventDefault();
+  const validateStock = (): boolean => {
     for (const { product, quantity } of items) {
       const stock = getStock(product.id);
       if (quantity > stock) {
         showToast(`Only ${stock} of ${product.name} available`, 'error');
-        return;
+        return false;
       }
     }
+    return true;
+  };
+
+  const finishOrder = async (extra: Record<string, string>) => {
+    const { order } = await placeOrder({
+      ...orderPayload,
+      address: address.trim(),
+      paymentMethod,
+      ...extra,
+    });
+    clearCart();
+    showToast(`Order placed! Bill ${order.billNumber}`);
+    navigate(`/track-order?order=${encodeURIComponent(order.orderNumber)}&placed=1`);
+  };
+
+  const payWithRazorpay = async (): Promise<void> => {
+    await loadRazorpayCheckout();
+    const keyId = getRazorpayKeyId();
+    const { orderId } = await createRazorpayOrder(amountPaise);
+
+    await new Promise<void>((resolve, reject) => {
+      const Razorpay = window.Razorpay;
+      if (!Razorpay) {
+        reject(new Error('Razorpay checkout failed to load'));
+        return;
+      }
+
+      const rzp = new Razorpay({
+        key: keyId,
+        amount: amountPaise,
+        currency: 'INR',
+        name: 'Daily Dry',
+        description: 'Order payment (test mode)',
+        order_id: orderId,
+        prefill: {
+          name: user?.name || '',
+          email: user?.email || '',
+          contact: user?.mobile || '',
+        },
+        theme: { color: '#2d5016' },
+        handler: async (response: RazorpayCheckoutResponse) => {
+          try {
+            const verified = await verifyRazorpayPayment({
+              razorpay_order_id: response.razorpay_order_id,
+              razorpay_payment_id: response.razorpay_payment_id,
+              razorpay_signature: response.razorpay_signature,
+              amountPaise,
+            });
+            await finishOrder({
+              razorpayPaymentId: verified.razorpayPaymentId,
+              razorpayOrderId: verified.razorpayOrderId,
+              paymentToken: verified.paymentToken,
+            });
+            resolve();
+          } catch (err) {
+            reject(err);
+          }
+        },
+        modal: {
+          ondismiss: () => reject(new Error('Payment cancelled')),
+        },
+      });
+
+      rzp.on('payment.failed', () => {
+        reject(new Error('Payment failed. Try again or choose COD.'));
+      });
+
+      rzp.open();
+    });
+  };
+
+  const handleSubmit = async (e: FormEvent) => {
+    e.preventDefault();
+    if (!validateStock()) return;
 
     setSubmitting(true);
     try {
-      const { order } = await placeOrder({
-        address: address.trim(),
-        paymentMethod,
-        orderAmount: subtotal,
-        shippingCharges: shipping,
-        totalAmount: total,
-        items: items.map(({ product, quantity }) => ({
-          productId: product.id,
-          name: product.name,
-          quantity,
-          unitPrice: product.price,
-        })),
-      });
-      clearCart();
-      showToast(`Order placed! Bill ${order.billNumber}`);
-      navigate(`/track-order?order=${encodeURIComponent(order.orderNumber)}&placed=1`);
+      if (paymentMethod === PAYMENT_METHOD_COD) {
+        await finishOrder({});
+        return;
+      }
+      await payWithRazorpay();
     } catch (err) {
       showToast(err instanceof Error ? err.message : 'Could not place order', 'error');
     } finally {
       setSubmitting(false);
     }
   };
+
+  const submitLabel =
+    paymentMethod === PAYMENT_METHOD_COD
+      ? submitting
+        ? 'Placing order…'
+        : 'Place order (COD)'
+      : submitting
+        ? 'Opening payment…'
+        : 'Pay online (test)';
 
   return (
     <section className="checkout-page">
@@ -119,21 +215,29 @@ function CheckoutContent() {
                 </span>
               </label>
 
-              <div className="checkout-payment-option is-disabled" aria-disabled="true">
+              <label
+                className={`checkout-payment-option ${paymentMethod === PAYMENT_METHOD_RAZORPAY ? 'is-selected' : ''}`}
+              >
+                <input
+                  type="radio"
+                  name="paymentMethod"
+                  value={PAYMENT_METHOD_RAZORPAY}
+                  checked={paymentMethod === PAYMENT_METHOD_RAZORPAY}
+                  onChange={() => setPaymentMethod(PAYMENT_METHOD_RAZORPAY)}
+                />
                 <span className="checkout-payment-icon" aria-hidden>
                   <Smartphone size={22} />
                 </span>
                 <span className="checkout-payment-copy">
-                  <strong>UPI</strong>
-                  <small>Coming soon — not available yet</small>
+                  <strong>Pay online (UPI / card)</strong>
+                  <small>Razorpay test mode — no real charge</small>
                 </span>
-                <span className="checkout-payment-soon">Soon</span>
-              </div>
+              </label>
             </div>
           </fieldset>
 
           <button type="submit" className="btn btn-primary btn-block" disabled={submitting}>
-            {submitting ? 'Placing order…' : 'Place order (COD)'}
+            {submitLabel}
           </button>
         </form>
 

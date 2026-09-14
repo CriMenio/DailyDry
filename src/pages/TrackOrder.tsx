@@ -4,6 +4,7 @@ import { MessageCircle, PackageSearch } from 'lucide-react';
 import { fetchTrackOrder } from '../services/api';
 import type { OrderRecord } from '../types/api';
 import { buildOrderConfirmWhatsAppUrl } from '../config/commerce';
+import { formatPaymentStatusLabel } from '../config/orderStatus';
 import { formatPrice } from '../data/products';
 import OrderTrackingTimeline from '../components/OrderTrackingTimeline';
 
@@ -12,6 +13,7 @@ function orderStatusTone(status: string): string {
   if (s.includes('deliver') && !s.includes('out for')) return 'success';
   if (s.includes('out for') || s.includes('dispatch')) return 'pending';
   if (s === 'cod') return 'success';
+  if (s === 'paid') return 'success';
   return 'neutral';
 }
 
@@ -67,7 +69,7 @@ function TrackOrderResult({ order, justPlaced }: { order: OrderRecord; justPlace
           </div>
           <div className="order-totals-foot">
             <span className={`order-payment-pill order-payment-pill--${orderStatusTone(order.paymentStatus)}`}>
-              Payment: {order.paymentStatus === 'COD' ? 'Cash on delivery' : order.paymentStatus}
+              Payment: {formatPaymentStatusLabel(order.paymentStatus)}
             </span>
           </div>
         </div>

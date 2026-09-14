@@ -9,7 +9,16 @@ export const ORDER_TRACKING_STEPS = [
 export type OrderTrackingStep = (typeof ORDER_TRACKING_STEPS)[number];
 
 export const PAYMENT_METHOD_COD = 'COD' as const;
-export const PAYMENT_METHOD_UPI = 'UPI' as const;
+export const PAYMENT_METHOD_RAZORPAY = 'RAZORPAY' as const;
+/** @deprecated Use PAYMENT_METHOD_RAZORPAY — kept for labels */
+export const PAYMENT_METHOD_UPI = 'RAZORPAY' as const;
+
+export function formatPaymentStatusLabel(paymentStatus: string): string {
+  const s = paymentStatus.trim();
+  if (s === 'COD') return 'Cash on delivery';
+  if (s === 'Paid' || s.toLowerCase() === 'paid') return 'Paid online';
+  return s;
+}
 
 export function orderStepIndex(status: string): number {
   const normalized = status.trim().toLowerCase();

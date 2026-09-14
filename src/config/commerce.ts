@@ -30,7 +30,9 @@ export function buildOrderConfirmWhatsAppUrl(order: {
   const payment =
     order.paymentStatus === 'COD' || !order.paymentStatus
       ? 'Cash on delivery (COD)'
-      : order.paymentStatus;
+      : order.paymentStatus === 'Paid'
+        ? 'Paid online'
+        : order.paymentStatus;
 
   const text = [
     'Hello Daily Dry, I placed an order on your website. Please confirm.',
