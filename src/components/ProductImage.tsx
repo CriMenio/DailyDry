@@ -34,6 +34,7 @@ export default function ProductImage({
         alt={alt}
         className="product-image"
         loading={loading}
+        referrerPolicy="no-referrer"
         onLoad={() => setLoaded(true)}
         onError={() => {
           setError(true);

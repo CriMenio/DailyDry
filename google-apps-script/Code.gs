@@ -1344,8 +1344,14 @@ function uploadProductImage(body) {
     }
   }
   if (!folder) {
-    folder = DriveApp.createFolder('DailyDry Product Images');
-    props.setProperty('PRODUCT_IMAGES_FOLDER_ID', folder.getId());
+    try {
+      folder = DriveApp.createFolder('DailyDry Product Images');
+      props.setProperty('PRODUCT_IMAGES_FOLDER_ID', folder.getId());
+    } catch (e) {
+      throw new Error(
+        'Google Drive access is not authorized for this web app. In Apps Script, run authorizeProductImageUploadOnce once, allow Drive, then Deploy → New version.'
+      );
+    }
   }
   const bytes = Utilities.base64Decode(body.data);
   const mime = body.mimeType || 'image/jpeg';
@@ -1353,8 +1359,10 @@ function uploadProductImage(body) {
   const blob = Utilities.newBlob(bytes, mime, safeName);
   const file = folder.createFile(blob);
   file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
-  const path = 'https://drive.google.com/uc?export=view&id=' + file.getId();
-  return { ok: true, path: path, fileName: safeName };
+  const fileId = file.getId();
+  const path = 'https://drive.google.com/thumbnail?id=' + fileId + '&sz=w1600';
+  const viewUrl = 'https://drive.google.com/uc?export=view&id=' + fileId;
+  return { ok: true, path: path, viewUrl: viewUrl, fileName: safeName };
 }
 
 /**
@@ -1511,4 +1519,26 @@ function authorizePasswordResetMailOnce() {
     'If you received this, password reset emails are allowed. You can delete this message.'
   );
   Logger.log('Test email sent to ' + email);
+}
+
+/**
+ * Run once from the Apps Script editor (▶ Run) so Google asks to allow Google Drive.
+ * Required for admin product image upload on dailydry.in. Then Deploy → Manage deployments → New version.
+ */
+function authorizeProductImageUploadOnce() {
+  const props = PropertiesService.getScriptProperties();
+  let folderId = props.getProperty('PRODUCT_IMAGES_FOLDER_ID');
+  let folder;
+  if (folderId) {
+    try {
+      folder = DriveApp.getFolderById(folderId);
+    } catch (e) {
+      folder = null;
+    }
+  }
+  if (!folder) {
+    folder = DriveApp.createFolder('DailyDry Product Images');
+    props.setProperty('PRODUCT_IMAGES_FOLDER_ID', folder.getId());
+  }
+  Logger.log('Drive OK — folder: ' + folder.getName() + ' (' + folder.getId() + ')');
 }
