@@ -625,27 +625,10 @@
   color: var(--gold);
 }
 
-.bulk-banner-ss1-image {
-  max-width: 220px;
-  margin: 0 auto;
-  border-radius: var(--radius-sm);
-  overflow: hidden;
-  aspect-ratio: 1;
-}
-
-.bulk-banner-ss1-image .product-image-wrap {
-  height: 100%;
-}
-
 @media (min-width: 900px) {
   .bulk-banner-ss1-inner {
-    grid-template-columns: 1.1fr auto 0.9fr;
+    grid-template-columns: 1fr auto;
     gap: 2rem;
-  }
-
-  .bulk-banner-ss1-image {
-    margin: 0;
-    max-width: 200px;
   }
 }
 

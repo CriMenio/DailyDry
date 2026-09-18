@@ -1,7 +1,5 @@
 import { Link } from 'react-router-dom';
 import { Tag, Truck, Package } from 'lucide-react';
-import { sectionImages } from '../data/media';
-import ProductImage from './ProductImage';
 import { ScrollReveal } from '../hooks/useScrollReveal';
 
 export default function BulkOrdersBanner() {
@@ -35,12 +33,6 @@ export default function BulkOrdersBanner() {
               <Package size={20} />
               <span>Custom Packaging</span>
             </div>
-          </div>
-        </ScrollReveal>
-
-        <ScrollReveal direction="right" delay={180}>
-          <div className="bulk-banner-ss1-image">
-            <ProductImage src={sectionImages.bulkGift} alt="Corporate gifting box with dry fruits" />
           </div>
         </ScrollReveal>
       </div>
