@@ -12,6 +12,7 @@ export interface InventoryRow {
   category: string;
   sellerType: string;
   stock: number;
+  offerPrice?: number;
   mrp: number;
   imagePath: string;
   weight: string;

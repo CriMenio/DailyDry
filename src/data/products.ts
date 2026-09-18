@@ -352,12 +352,29 @@ export function getShopProducts(): Product[] {
   return products;
 }
 
+/** Selling price for shop/cart; MRP shown struck-through when offer is lower. */
+export function sellingPriceFromInventory(row: { mrp: number; offerPrice?: number }): {
+  price: number;
+  originalPrice?: number;
+} {
+  const mrp = Number(row.mrp) || 0;
+  const offer = row.offerPrice != null ? Number(row.offerPrice) : NaN;
+  if (Number.isFinite(offer) && offer > 0) {
+    return {
+      price: offer,
+      originalPrice: mrp > offer ? mrp : undefined,
+    };
+  }
+  return { price: mrp, originalPrice: undefined };
+}
+
 export function inventoryRowToProduct(row: {
   sheetId: string;
   productName: string;
   category: string;
   sellerType?: string;
   mrp: number;
+  offerPrice?: number;
   imagePath: string;
   weight?: string;
   remarks1: string;
@@ -369,11 +386,13 @@ export function inventoryRowToProduct(row: {
   const sellerType = normalizeSellerType(row.sellerType || '');
   const badge =
     sellerType === 'best-seller' ? 'Best Seller' : sellerType === 'new-arrival' ? 'New Arrival' : undefined;
+  const { price, originalPrice } = sellingPriceFromInventory(row);
   return {
     id: `s-${row.sheetId}`,
     name: row.productName,
     category,
-    price: row.mrp,
+    price,
+    originalPrice,
     rating: 4.5,
     reviews: 0,
     image: resolveProductImagePath(row.imagePath) || productImages.almonds,

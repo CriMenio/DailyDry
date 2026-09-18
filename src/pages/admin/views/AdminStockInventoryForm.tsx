@@ -20,6 +20,7 @@ const emptyForm = {
   category: 'almonds',
   sellerType: '',
   mrp: '',
+  offerPrice: '',
   stock: '',
   weight: '',
   imagePath: '',
@@ -34,6 +35,7 @@ function rowToForm(row: InventoryRow) {
     category: row.category || 'almonds',
     sellerType: sellerTypeFormValue(row.sellerType),
     mrp: String(row.mrp || ''),
+    offerPrice: row.offerPrice && row.offerPrice > 0 ? String(row.offerPrice) : '',
     stock: String(row.stock),
     weight: row.weight || '',
     imagePath: row.imagePath,
@@ -99,6 +101,7 @@ export default function AdminStockInventoryForm({ editSheetId, onBack, onSaved }
           sellerType: sellerTypeSheetValue(form.sellerType),
           stock: Number(form.stock) || 0,
           mrp: Number(form.mrp) || undefined,
+          offerPrice: form.offerPrice.trim() === '' ? '' : Number(form.offerPrice) || '',
           imagePath: form.imagePath.trim(),
           weight: form.weight.trim(),
           enabled: form.listed,
@@ -176,6 +179,15 @@ export default function AdminStockInventoryForm({ editSheetId, onBack, onSaved }
                   min={0}
                   value={form.mrp}
                   onChange={(e) => setForm({ ...form, mrp: e.target.value })}
+                />
+                <AdminField
+                  label="Offer price (₹)"
+                  hint="Leave empty to sell at MRP only"
+                  type="number"
+                  min={0}
+                  value={form.offerPrice}
+                  onChange={(e) => setForm({ ...form, offerPrice: e.target.value })}
+                  placeholder="Optional sale price"
                 />
                 <AdminField
                   label="Weight / pack"
@@ -274,6 +286,10 @@ export default function AdminStockInventoryForm({ editSheetId, onBack, onSaved }
                 <li>
                   <span>MRP</span>
                   <strong>{form.mrp ? `₹${form.mrp}` : '—'}</strong>
+                </li>
+                <li>
+                  <span>Offer</span>
+                  <strong>{form.offerPrice ? `₹${form.offerPrice}` : 'Same as MRP'}</strong>
                 </li>
                 <li>
                   <span>Stock</span>

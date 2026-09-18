@@ -13,8 +13,8 @@ import { DEFAULT_STORE_SHIPPING } from '../config/commerce';
 const API_BASE = import.meta.env.VITE_API_URL?.replace(/\/$/, '') || '/api';
 
 async function request<T>(action: string, payload: Record<string, unknown> = {}): Promise<T> {
-  const token = localStorage.getItem('dailydry-token');
-  const adminToken = localStorage.getItem('dailydry-admin-token');
+  const token = localStorage.getItem('dailydry-token')?.trim() || undefined;
+  const adminToken = localStorage.getItem('dailydry-admin-token')?.trim() || undefined;
 
   const res = await fetch(API_BASE, {
     method: 'POST',
@@ -43,7 +43,14 @@ async function request<T>(action: string, payload: Record<string, unknown> = {})
   }
 
   if (!res.ok || data.ok === false) {
-    throw new Error(data.error || `Request failed (${res.status})`);
+    const msg = data.error || `Request failed (${res.status})`;
+    if (
+      adminToken &&
+      /admin session|admin not signed|could not decode|invalid admin/i.test(String(msg))
+    ) {
+      localStorage.removeItem('dailydry-admin-token');
+    }
+    throw new Error(msg);
   }
 
   return data as T;
@@ -251,6 +258,7 @@ export async function adminUpdateInventory(
     sellerType?: string;
     stock: number;
     mrp?: number;
+    offerPrice?: number | '';
     imagePath?: string;
     weight?: string;
     enabled: boolean;

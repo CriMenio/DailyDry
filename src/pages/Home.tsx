@@ -13,7 +13,7 @@ import { useMemo } from 'react';
 export default function Home() {
   const { loading, stockRows } = useInventory();
 
-  const catalogKey = stockRows.map((r) => `${r.sheetId}:${r.mrp}:${r.enabled}`).join('|');
+  const catalogKey = stockRows.map((r) => `${r.sheetId}:${r.mrp}:${r.offerPrice ?? ''}:${r.enabled}`).join('|');
 
   const bestSellers = useMemo(() => {
     if (loading) return [];

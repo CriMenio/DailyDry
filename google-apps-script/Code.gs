@@ -181,7 +181,12 @@ function verifyAdminToken(adminToken) {
   const secret =
     PropertiesService.getScriptProperties().getProperty('ADMIN_SESSION_SECRET') ||
     'daily-dry-admin-change-me';
-  const decoded = Utilities.newBlob(Utilities.base64DecodeWebSafe(adminToken)).getDataAsString();
+  let decoded;
+  try {
+    decoded = Utilities.newBlob(Utilities.base64DecodeWebSafe(String(adminToken).trim())).getDataAsString();
+  } catch (e) {
+    throw new Error('Admin session expired. Sign out and sign in to admin again.');
+  }
   if (decoded.indexOf('admin:') !== 0) throw new Error('Invalid admin session');
   const payload = decoded.split(':')[1];
   const sig = decoded.split(':')[2];
@@ -371,6 +376,13 @@ function completePasswordReset(body) {
   return { ok: true, message: 'Password updated. You can sign in now.' };
 }
 
+function effectiveSellingPrice(row) {
+  const mrp = Number(row.mrp) || 0;
+  const offerNum = Number(row.offerPrice);
+  if (isFinite(offerNum) && offerNum > 0) return offerNum;
+  return mrp;
+}
+
 function getInventory() {
   const sh = sheet(SHEETS.STOCK);
   const data = sh.getDataRange().getValues();
@@ -396,6 +408,10 @@ function getInventory() {
       category: String(data[i][cols.category] || ''),
       sellerType: String(data[i][cols.sellerType] || ''),
       mrp: Number(data[i][cols.mrp]) || 0,
+      offerPrice:
+        cols.offerPrice >= 0 && data[i][cols.offerPrice] !== '' && data[i][cols.offerPrice] != null
+          ? Number(data[i][cols.offerPrice])
+          : undefined,
       stock: Number(data[i][cols.stock]) || 0,
       imagePath: String(data[i][cols.image] || ''),
       weight: weight,
@@ -506,6 +522,7 @@ function stockColumnIndices(headerRow) {
   let category = idx(['category']);
   let productName = idx(['productname']);
   let mrp = idx(['mrp', 'productmrp']);
+  let offerPrice = idx(['offerprice', 'offer', 'saleprice', 'discountprice']);
   let stock = idx(['totalstockremaning', 'totalstockremaining', 'stock']);
   let image = idx(['imagepath', 'productimagepath']);
   let r1 = idx(['remarks1']);
@@ -527,6 +544,7 @@ function stockColumnIndices(headerRow) {
     category: category,
     productName: productName,
     mrp: mrp,
+    offerPrice: offerPrice,
     stock: stock,
     image: image,
     weight: weight,
@@ -546,6 +564,9 @@ function writeStockRow(sh, sheetRow, cols, row, existingRow) {
   }
   sh.getRange(sheetRow, cols.productName + 1).setValue(row.productName);
   sh.getRange(sheetRow, cols.mrp + 1).setValue(row.mrp !== undefined && row.mrp !== '' ? row.mrp : getExisting('mrp') || '');
+  if (cols.offerPrice >= 0 && row.offerPrice !== undefined) {
+    sh.getRange(sheetRow, cols.offerPrice + 1).setValue(row.offerPrice === '' ? '' : row.offerPrice);
+  }
   sh.getRange(sheetRow, cols.stock + 1).setValue(row.stock);
   sh.getRange(sheetRow, cols.image + 1).setValue(row.imagePath || getExisting('image') || '');
   if (row.weight !== undefined) {
@@ -568,6 +589,7 @@ function stockAppendValues(cols, id, row) {
     cols.category,
     cols.productName,
     cols.mrp,
+    cols.offerPrice >= 0 ? cols.offerPrice : cols.mrp,
     cols.stock,
     cols.image,
     cols.r1,
@@ -584,6 +606,9 @@ function stockAppendValues(cols, id, row) {
   line[cols.sellerType] = row.sellerType || '';
   line[cols.productName] = row.productName;
   line[cols.mrp] = row.mrp || '';
+  if (cols.offerPrice >= 0) {
+    line[cols.offerPrice] = row.offerPrice !== undefined && row.offerPrice !== '' ? row.offerPrice : '';
+  }
   line[cols.stock] = row.stock;
   line[cols.image] = row.imagePath || '';
   line[cols.weight] = row.weight || '';
@@ -778,6 +803,11 @@ function createOrder(body) {
     const row = invMap[normalizeName(line.name)];
     if (!row || !row.enabled) throw new Error('Product unavailable: ' + line.name);
     if (line.quantity > row.stock) throw new Error('Not enough stock for ' + line.name);
+    const expectedUnit = effectiveSellingPrice(row);
+    const unit = Number(line.unitPrice) || 0;
+    if (Math.abs(unit - expectedUnit) > 0.02) {
+      throw new Error('Price is out of date for ' + line.name + '. Refresh the page and try again.');
+    }
   }
 
   for (let j = 0; j < items.length; j++) {
@@ -1371,6 +1401,7 @@ function setupAllSheetsOnce() {
         'SellerType',
         'ProductName',
         'MRP',
+        'Offer Price',
         'Total Stock Remaning',
         'ImagePath',
         'Weight',
