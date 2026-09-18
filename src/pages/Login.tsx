@@ -73,6 +73,9 @@ export default function Login() {
                 </button>
               </div>
             </div>
+            <p className="auth-forgot">
+              <Link to="/forgot-password">Forgot password?</Link>
+            </p>
           </div>
 
           <div className="auth-submit">

@@ -19,6 +19,7 @@ import Privacy from './pages/Privacy';
 import ShippingPolicy from './pages/ShippingPolicy';
 import RefundPolicy from './pages/RefundPolicy';
 import Login from './pages/Login';
+import ForgotPassword from './pages/ForgotPassword';
 import Register from './pages/Register';
 import Account from './pages/Account';
 import Checkout from './pages/Checkout';
@@ -53,6 +54,7 @@ export default function App() {
                     <Route path="/refund-policy" element={<RefundPolicy />} />
                     <Route path="/track-order" element={<TrackOrder />} />
                     <Route path="/login" element={<Login />} />
+                    <Route path="/forgot-password" element={<ForgotPassword />} />
                     <Route path="/register" element={<Register />} />
                     <Route path="/account" element={<Account />} />
                     <Route path="/checkout" element={<Checkout />} />

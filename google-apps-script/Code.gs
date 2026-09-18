@@ -41,6 +41,10 @@ function routeAction(body) {
       return register(body);
     case 'login':
       return login(body);
+    case 'requestPasswordReset':
+      return requestPasswordReset(body);
+    case 'completePasswordReset':
+      return completePasswordReset(body);
     case 'getInventory':
       return { ok: true, inventory: getInventory(), storeSettings: getStoreSettings() };
     case 'adminGetStoreSettings':
@@ -239,6 +243,132 @@ function login(body) {
     }
   }
   throw new Error('Invalid mobile or password');
+}
+
+function normalizeEmail(email) {
+  return String(email || '')
+    .trim()
+    .toLowerCase();
+}
+
+function normalizeMobile(mobile) {
+  return String(mobile || '')
+    .replace(/\D/g, '')
+    .slice(-10);
+}
+
+function findUserByMobileAndEmail(mobile, email) {
+  const sh = sheet(SHEETS.USER_SIGNUP);
+  const data = sh.getDataRange().getValues();
+  const targetMobile = normalizeMobile(mobile);
+  const targetEmail = normalizeEmail(email);
+  if (targetMobile.length !== 10) return null;
+  for (let i = 1; i < data.length; i++) {
+    const rowMobile = normalizeMobile(data[i][3]);
+    const rowEmail = normalizeEmail(data[i][4]);
+    if (rowMobile === targetMobile && rowEmail === targetEmail) {
+      return {
+        sheetRow: i + 1,
+        userId: String(data[i][0]),
+        name: String(data[i][1] || ''),
+        mobile: rowMobile,
+        email: String(data[i][4] || '').trim(),
+      };
+    }
+  }
+  return null;
+}
+
+function updateUserPassword(userId, newPassword) {
+  if (!newPassword || String(newPassword).length < 6) {
+    throw new Error('Password must be at least 6 characters');
+  }
+  const sh = sheet(SHEETS.USER_SIGNUP);
+  const data = sh.getDataRange().getValues();
+  for (let i = 1; i < data.length; i++) {
+    if (String(data[i][0]) === String(userId)) {
+      sh.getRange(i + 1, 3).setValue(encodePasswordCell(newPassword));
+      return;
+    }
+  }
+  throw new Error('Account not found');
+}
+
+/** Send a 6-digit code to the email on file (must match mobile). */
+function requestPasswordReset(body) {
+  const mobile = normalizeMobile(body.mobile);
+  const email = normalizeEmail(body.email);
+  if (mobile.length !== 10) throw new Error('Enter a valid 10-digit mobile number');
+  if (!email || email.indexOf('@') === -1) throw new Error('Enter the email used when you registered');
+
+  const user = findUserByMobileAndEmail(mobile, email);
+  if (!user) {
+    throw new Error('No account found with this mobile number and email');
+  }
+  if (!user.email) {
+    throw new Error('This account has no email on file. Contact support to reset your password.');
+  }
+
+  const cache = CacheService.getScriptCache();
+  const throttleKey = 'pwdreset-throttle:' + mobile;
+  if (cache.get(throttleKey)) {
+    throw new Error('Please wait a minute before requesting another code');
+  }
+
+  const code = String(Math.floor(100000 + Math.random() * 900000));
+  cache.put(
+    'pwdreset:' + mobile,
+    JSON.stringify({ code: code, userId: user.userId, email: email }),
+    900
+  );
+  cache.put(throttleKey, '1', 60);
+
+  MailApp.sendEmail({
+    to: user.email,
+    subject: 'Daily Dry — password reset code',
+    body:
+      'Hi ' +
+      (user.name || 'there') +
+      ',\n\nYour Daily Dry password reset code is: ' +
+      code +
+      '\n\nThis code expires in 15 minutes.\nIf you did not request this, ignore this email.',
+  });
+
+  return { ok: true, message: 'Reset code sent to your email' };
+}
+
+function completePasswordReset(body) {
+  const mobile = normalizeMobile(body.mobile);
+  const email = normalizeEmail(body.email);
+  const code = String(body.code || '').trim();
+  const newPassword = String(body.newPassword || '');
+
+  if (mobile.length !== 10) throw new Error('Enter a valid 10-digit mobile number');
+  if (!email) throw new Error('Email is required');
+  if (!/^\d{6}$/.test(code)) throw new Error('Enter the 6-digit code from your email');
+  if (newPassword.length < 6) throw new Error('Password must be at least 6 characters');
+
+  const cache = CacheService.getScriptCache();
+  const raw = cache.get('pwdreset:' + mobile);
+  if (!raw) throw new Error('Code expired or not found. Request a new code.');
+
+  let stored;
+  try {
+    stored = JSON.parse(raw);
+  } catch (e) {
+    throw new Error('Code expired or not found. Request a new code.');
+  }
+  if (normalizeEmail(stored.email) !== email) {
+    throw new Error('Email does not match this reset request');
+  }
+  if (String(stored.code) !== code) {
+    throw new Error('Incorrect code');
+  }
+
+  updateUserPassword(stored.userId, newPassword);
+  cache.remove('pwdreset:' + mobile);
+
+  return { ok: true, message: 'Password updated. You can sign in now.' };
 }
 
 function getInventory() {
@@ -1336,4 +1466,18 @@ function changeAdminPassword() {
     }
   }
   throw new Error('User not found: ' + userName);
+}
+
+/**
+ * Run once from the Apps Script editor (▶ Run) so Google asks to allow sending email.
+ * Required for customer "Forgot password" codes. Then Deploy → Manage deployments → New version.
+ */
+function authorizePasswordResetMailOnce() {
+  const email = Session.getEffectiveUser().getEmail();
+  MailApp.sendEmail(
+    email,
+    'Daily Dry — email permission test',
+    'If you received this, password reset emails are allowed. You can delete this message.'
+  );
+  Logger.log('Test email sent to ' + email);
 }

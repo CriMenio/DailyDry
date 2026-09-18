@@ -63,6 +63,29 @@ export async function loginUser(mobile: string, password: string): Promise<{ use
   return request('login', { mobile, password });
 }
 
+export async function requestPasswordReset(
+  mobile: string,
+  email: string
+): Promise<{ message: string }> {
+  const data = await request<{ message?: string }>('requestPasswordReset', { mobile, email });
+  return { message: data.message || 'Reset code sent to your email' };
+}
+
+export async function completePasswordReset(input: {
+  mobile: string;
+  email: string;
+  code: string;
+  newPassword: string;
+}): Promise<{ message: string }> {
+  const data = await request<{ message?: string }>('completePasswordReset', {
+    mobile: input.mobile,
+    email: input.email,
+    code: input.code,
+    newPassword: input.newPassword,
+  });
+  return { message: data.message || 'Password updated' };
+}
+
 export async function fetchInventory(): Promise<{ inventory: InventoryRow[]; storeSettings: StoreSettings }> {
   const data = await request<{ inventory: InventoryRow[]; storeSettings?: StoreSettings }>('getInventory');
   const storeSettings = data.storeSettings;

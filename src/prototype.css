@@ -2183,6 +2183,52 @@
   font-weight: 600;
 }
 
+.auth-forgot {
+  margin: -0.25rem 0 0;
+  text-align: right;
+  font-size: 0.85rem;
+}
+
+.auth-forgot a {
+  color: var(--purple);
+  font-weight: 600;
+}
+
+.auth-forgot a:hover {
+  text-decoration: underline;
+}
+
+.forgot-password-steps {
+  margin: 0 0 1.25rem;
+  padding-left: 1.2rem;
+  color: var(--text);
+  font-size: 0.9rem;
+  line-height: 1.65;
+}
+
+.forgot-password-steps li {
+  margin-bottom: 0.5rem;
+}
+
+.forgot-password-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+  margin-bottom: 0.5rem;
+}
+
+.forgot-password-support {
+  margin-top: 1rem;
+  text-align: center;
+  font-size: 0.82rem;
+  color: var(--text-muted);
+}
+
+.forgot-password-support a {
+  color: var(--purple);
+  font-weight: 600;
+}
+
 .header-account-link {
   font-size: 0.85rem;
   font-weight: 600;
