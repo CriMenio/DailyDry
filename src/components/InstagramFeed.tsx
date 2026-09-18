@@ -28,14 +28,11 @@ export default function InstagramFeed() {
               <p className="instagram-banner-handle">
                 Promos on premium dry fruits — tap a card to shop
               </p>
-              <Link to="/shop" className="instagram-follow-btn btn-lift">
-                Shop all
-              </Link>
               <a
                 href={STORE_INSTAGRAM_URL}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="home-offers-instagram-link"
+                className="instagram-follow-btn btn-lift"
               >
                 Follow {STORE_INSTAGRAM_HANDLE}
               </a>
