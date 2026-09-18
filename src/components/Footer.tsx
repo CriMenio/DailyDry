@@ -27,6 +27,7 @@ export default function Footer() {
             <ul>
               <li><Link to="/">Home</Link></li>
               <li><Link to="/shop">Shop</Link></li>
+              <li><Link to="/about">About Us</Link></li>
               <li><Link to="/contact">Contact Us</Link></li>
             </ul>
           </div>
@@ -35,10 +36,11 @@ export default function Footer() {
             <h4>Customer Service</h4>
             <ul>
               <li><Link to="/track-order">Track Order</Link></li>
-              <li><Link to="/contact">Shipping & Delivery</Link></li>
-              <li><Link to="/contact">Returns & Refunds</Link></li>
+              <li><Link to="/shipping-policy">Shipping & Delivery</Link></li>
+              <li><Link to="/refund-policy">Returns & Refunds</Link></li>
               <li><Link to="/contact">FAQ</Link></li>
-              <li><Link to="/contact">Privacy Policy</Link></li>
+              <li><Link to="/terms">Terms & Conditions</Link></li>
+              <li><Link to="/privacy">Privacy Policy</Link></li>
               <li><Link to="/admin/login">Admin</Link></li>
             </ul>
           </div>
@@ -78,7 +80,15 @@ export default function Footer() {
         </div>
 
         <div className="footer-bottom">
-          <p>&copy; {new Date().getFullYear()} Daily Dry. All rights reserved.</p>
+          <p>
+            &copy; {new Date().getFullYear()} Daily Dry. All rights reserved.
+            {' · '}
+            <Link to="/terms">Terms</Link>
+            {' · '}
+            <Link to="/privacy">Privacy</Link>
+            {' · '}
+            <Link to="/refund-policy">Refunds</Link>
+          </p>
         </div>
       </div>
     </footer>

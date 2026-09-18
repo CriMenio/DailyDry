@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { Facebook, Instagram, Twitter, Youtube } from 'lucide-react';
 import { submitContactForm } from '../services/api';
 import { useToast } from '../context/ToastContext';
@@ -179,7 +180,7 @@ export default function Contact() {
               />
               <span>
                 I&apos;d like to receive more information about Daily Dry. I understand and agree to the{' '}
-                <a href="/contact">Privacy Policy</a>.
+                <Link to="/privacy">Privacy Policy</Link>.
               </span>
             </label>
 

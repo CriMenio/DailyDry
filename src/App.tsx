@@ -13,6 +13,11 @@ import Wishlist from './pages/Wishlist';
 import ProductDetail from './pages/ProductDetail';
 import BulkOrders from './pages/BulkOrders';
 import Contact from './pages/Contact';
+import About from './pages/About';
+import Terms from './pages/Terms';
+import Privacy from './pages/Privacy';
+import ShippingPolicy from './pages/ShippingPolicy';
+import RefundPolicy from './pages/RefundPolicy';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import Account from './pages/Account';
@@ -41,6 +46,11 @@ export default function App() {
                     <Route path="/wishlist" element={<Wishlist />} />
                     <Route path="/bulk-orders" element={<BulkOrders />} />
                     <Route path="/contact" element={<Contact />} />
+                    <Route path="/about" element={<About />} />
+                    <Route path="/terms" element={<Terms />} />
+                    <Route path="/privacy" element={<Privacy />} />
+                    <Route path="/shipping-policy" element={<ShippingPolicy />} />
+                    <Route path="/refund-policy" element={<RefundPolicy />} />
                     <Route path="/track-order" element={<TrackOrder />} />
                     <Route path="/login" element={<Login />} />
                     <Route path="/register" element={<Register />} />

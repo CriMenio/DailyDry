@@ -39,6 +39,7 @@ export default function Header({ searchQuery = '', onSearchChange }: HeaderProps
   const navLinks = [
     { to: '/', label: 'Home' },
     { to: '/shop', label: 'Shop' },
+    { to: '/about', label: 'About Us' },
     { to: '/contact', label: 'Contact Us' },
   ];
 
