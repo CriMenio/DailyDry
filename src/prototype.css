@@ -460,6 +460,14 @@
 }
 
 /* ===== Home Main — SS1 Best Sellers ===== */
+.home-products-loading {
+  grid-column: 1 / -1;
+  text-align: center;
+  color: var(--text-muted);
+  padding: 2rem 1rem;
+  font-size: 0.95rem;
+}
+
 .home-main-section-ss1 {
   padding: 2.5rem 0 2rem;
   background: var(--cream);

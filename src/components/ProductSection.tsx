@@ -8,6 +8,7 @@ interface ProductSectionProps {
   subtitle?: string;
   products: Product[];
   viewAllLink?: string;
+  loading?: boolean;
 }
 
 export default function ProductSection({
@@ -15,6 +16,7 @@ export default function ProductSection({
   subtitle,
   products,
   viewAllLink = '/shop',
+  loading,
 }: ProductSectionProps) {
   return (
     <section className="product-section-block">
@@ -28,11 +30,17 @@ export default function ProductSection({
           </div>
         </ScrollReveal>
         <div className="product-grid">
-          {products.map((product, i) => (
-            <ScrollReveal key={product.id} delay={i * 50}>
-              <ProductCard product={product} index={i} />
-            </ScrollReveal>
-          ))}
+          {loading ? (
+            <p className="home-products-loading" aria-live="polite">
+              Loading products…
+            </p>
+          ) : (
+            products.map((product, i) => (
+              <ScrollReveal key={product.id} delay={i * 50}>
+                <ProductCard product={product} index={i} />
+              </ScrollReveal>
+            ))
+          )}
         </div>
         <ScrollReveal delay={150}>
           <div className="section-cta-center">

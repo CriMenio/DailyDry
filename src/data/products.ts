@@ -329,14 +329,26 @@ export function formatPrice(price: number): string {
 }
 
 /** When StockInventory has rows, the shop uses them instead of the static list. */
-let shopCatalogFromSheet: Product[] | null = null;
+let shopCatalogFromSheet: Product[] = [];
+let shopCatalogReady = false;
 
 export function setShopCatalogFromSheet(list: Product[] | null) {
-  shopCatalogFromSheet = list && list.length > 0 ? list : null;
+  if (list === null) {
+    shopCatalogReady = false;
+    shopCatalogFromSheet = [];
+    return;
+  }
+  shopCatalogReady = true;
+  shopCatalogFromSheet = list;
+}
+
+export function isShopCatalogReady(): boolean {
+  return shopCatalogReady;
 }
 
 export function getShopProducts(): Product[] {
-  return shopCatalogFromSheet ?? products;
+  if (shopCatalogReady) return shopCatalogFromSheet;
+  return products;
 }
 
 export function inventoryRowToProduct(row: {
@@ -388,7 +400,7 @@ const newArrivalIds = ['14', '15', '16', '17'];
 
 export function getBestSellers(): Product[] {
   const list = getShopProducts();
-  if (shopCatalogFromSheet) {
+  if (shopCatalogReady) {
     return list.filter((p) => p.listed !== false && p.sellerType === 'best-seller');
   }
   return bestSellerIds
@@ -398,7 +410,7 @@ export function getBestSellers(): Product[] {
 
 export function getNewArrivals(): Product[] {
   const list = getShopProducts();
-  if (shopCatalogFromSheet) {
+  if (shopCatalogReady) {
     return list.filter((p) => p.listed !== false && p.sellerType === 'new-arrival');
   }
   return newArrivalIds

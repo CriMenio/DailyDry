@@ -6,9 +6,10 @@ import { ScrollReveal } from '../hooks/useScrollReveal';
 
 interface HomeMainSectionProps {
   products: Product[];
+  loading?: boolean;
 }
 
-export default function HomeMainSection({ products }: HomeMainSectionProps) {
+export default function HomeMainSection({ products, loading }: HomeMainSectionProps) {
   return (
     <section className="home-main-section home-main-section-ss1">
       <div className="container">
@@ -22,11 +23,17 @@ export default function HomeMainSection({ products }: HomeMainSectionProps) {
         </ScrollReveal>
 
         <div className="product-grid best-sellers-grid">
-          {products.map((product, i) => (
-            <ScrollReveal key={product.id} delay={i * 70}>
-              <ProductCard product={product} index={i} variant="classic" />
-            </ScrollReveal>
-          ))}
+          {loading ? (
+            <p className="home-products-loading" aria-live="polite">
+              Loading products…
+            </p>
+          ) : (
+            products.map((product, i) => (
+              <ScrollReveal key={product.id} delay={i * 70}>
+                <ProductCard product={product} index={i} variant="classic" />
+              </ScrollReveal>
+            ))
+          )}
         </div>
 
         <ScrollReveal delay={200}>

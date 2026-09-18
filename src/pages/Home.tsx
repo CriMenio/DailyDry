@@ -7,16 +7,29 @@ import ProductSection from '../components/ProductSection';
 import InstagramFeed from '../components/InstagramFeed';
 import TrustBar from '../components/TrustBar';
 import { getBestSellers, getNewArrivals } from '../data/products';
+import { useInventory } from '../context/InventoryContext';
+import { useMemo } from 'react';
 
 export default function Home() {
-  const bestSellers = getBestSellers();
-  const newArrivals = getNewArrivals();
+  const { loading, stockRows } = useInventory();
+
+  const catalogKey = stockRows.map((r) => `${r.sheetId}:${r.mrp}:${r.enabled}`).join('|');
+
+  const bestSellers = useMemo(() => {
+    if (loading) return [];
+    return getBestSellers();
+  }, [loading, catalogKey]);
+
+  const newArrivals = useMemo(() => {
+    if (loading) return [];
+    return getNewArrivals();
+  }, [loading, catalogKey]);
 
   return (
     <>
       <Hero />
       <CategoryNav />
-      <HomeMainSection products={bestSellers} />
+      <HomeMainSection products={bestSellers} loading={loading} />
       <BulkOrdersBanner />
       <WhyChooseUs layout="home" />
       <InstagramFeed />
@@ -24,6 +37,7 @@ export default function Home() {
         title="New Arrivals"
         subtitle="Get a taste of something new! Our latest premium additions."
         products={newArrivals}
+        loading={loading}
       />
       <TrustBar />
     </>
