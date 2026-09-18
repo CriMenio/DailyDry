@@ -686,6 +686,21 @@ main {
   background: #fff5f5;
 }
 
+.wishlist-btn-frozen,
+.wishlist-btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
+  pointer-events: none;
+  color: var(--text-muted);
+  background: var(--cream-dark);
+}
+
+.wishlist-btn-frozen:hover,
+.wishlist-btn:disabled:hover {
+  color: var(--text-muted);
+  background: var(--cream-dark);
+}
+
 .product-image-link {
   display: block;
   aspect-ratio: 1;

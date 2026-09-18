@@ -36,6 +36,8 @@ export default function ProductDetail() {
 
   const inCart = isInCart(product.id);
   const inWishlist = isInWishlist(product.id);
+  const outOfStock = !enabled || stock <= 0;
+  const wishlistLocked = outOfStock && !inWishlist;
   const related = getShopProducts().filter((p) => p.category === product.category && p.id !== product.id).slice(0, 4);
 
   const handleAddToCart = () => {
@@ -49,6 +51,10 @@ export default function ProductDetail() {
   };
 
   const handleWishlist = () => {
+    if (outOfStock && !inWishlist) {
+      showToast('Out of stock items cannot be added to wishlist', 'error');
+      return;
+    }
     toggleWishlist(product);
     showToast(
       inWishlist ? 'Removed from wishlist' : 'Added to wishlist',
@@ -122,9 +128,16 @@ export default function ProductDetail() {
                   {inCart ? 'Add More to Cart' : 'Add to Cart'}
                 </button>
                 <button
+                  type="button"
                   className={`btn btn-outline ${inWishlist ? 'active' : ''}`}
                   onClick={handleWishlist}
-                  style={{ color: inWishlist ? '#e74c3c' : undefined, borderColor: inWishlist ? '#e74c3c' : undefined }}
+                  disabled={wishlistLocked}
+                  style={{
+                    color: inWishlist ? '#e74c3c' : undefined,
+                    borderColor: inWishlist ? '#e74c3c' : undefined,
+                    opacity: wishlistLocked ? 0.55 : undefined,
+                    cursor: wishlistLocked ? 'not-allowed' : undefined,
+                  }}
                 >
                   <Heart size={18} fill={inWishlist ? 'currentColor' : 'none'} />
                   {inWishlist ? 'In Wishlist' : 'Add to Wishlist'}

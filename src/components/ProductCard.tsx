@@ -39,6 +39,8 @@ export default function ProductCard({ product, index = 0, variant = 'default' }:
   const stockLabel = lowStockMessage(stock);
   const inCart = isInCart(product.id);
   const inWishlist = isInWishlist(product.id);
+  const outOfStock = !enabled || stock <= 0;
+  const wishlistLocked = outOfStock && !inWishlist;
 
   const handleAddToCart = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -52,6 +54,10 @@ export default function ProductCard({ product, index = 0, variant = 'default' }:
 
   const handleWishlist = (e: React.MouseEvent) => {
     e.preventDefault();
+    if (outOfStock && !inWishlist) {
+      showToast('Out of stock items cannot be added to wishlist', 'error');
+      return;
+    }
     toggleWishlist(product);
     showToast(
       inWishlist ? `${product.name} removed from wishlist` : `${product.name} added to wishlist`,
@@ -66,9 +72,17 @@ export default function ProductCard({ product, index = 0, variant = 'default' }:
     >
       {product.badge && variant !== 'classic' && <span className="product-badge">{product.badge}</span>}
       <button
-        className={`wishlist-btn ${inWishlist ? 'active' : ''}`}
+        type="button"
+        className={`wishlist-btn ${inWishlist ? 'active' : ''} ${wishlistLocked ? 'wishlist-btn-frozen' : ''}`}
         onClick={handleWishlist}
-        aria-label={inWishlist ? 'Remove from wishlist' : 'Add to wishlist'}
+        disabled={wishlistLocked}
+        aria-label={
+          wishlistLocked
+            ? 'Wishlist unavailable — out of stock'
+            : inWishlist
+              ? 'Remove from wishlist'
+              : 'Add to wishlist'
+        }
       >
         <Heart size={18} fill={inWishlist ? 'currentColor' : 'none'} strokeWidth={1.5} />
       </button>
