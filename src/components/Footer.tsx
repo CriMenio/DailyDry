@@ -1,7 +1,21 @@
 import { Link } from 'react-router-dom';
 import { Facebook, Instagram, Twitter, Youtube, MapPin, Phone, Mail } from 'lucide-react';
 import Logo from './Logo';
-import { STORE_PHONE_DISPLAY, STORE_PHONE_TEL, STORE_ADDRESS, STORE_EMAIL, STORE_EMAIL_MAILTO } from '../config/commerce';
+import {
+  STORE_PHONE_DISPLAY,
+  STORE_PHONE_TEL,
+  STORE_ADDRESS,
+  STORE_EMAIL,
+  STORE_EMAIL_MAILTO,
+  STORE_SOCIAL_LINKS,
+} from '../config/commerce';
+
+const socialIcons = {
+  facebook: Facebook,
+  instagram: Instagram,
+  twitter: Twitter,
+  youtube: Youtube,
+} as const;
 
 export default function Footer() {
   return (
@@ -15,10 +29,20 @@ export default function Footer() {
               hygienically packed, and delivered fresh to your doorstep.
             </p>
             <div className="social-links">
-              <a href="#" aria-label="Facebook"><Facebook size={18} /></a>
-              <a href="#" aria-label="Instagram"><Instagram size={18} /></a>
-              <a href="#" aria-label="Twitter"><Twitter size={18} /></a>
-              <a href="#" aria-label="Youtube"><Youtube size={18} /></a>
+              {STORE_SOCIAL_LINKS.map(({ id, label, href }) => {
+                const Icon = socialIcons[id];
+                return (
+                  <a
+                    key={id}
+                    href={href}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    aria-label={label}
+                  >
+                    <Icon size={18} />
+                  </a>
+                );
+              })}
             </div>
           </div>
 

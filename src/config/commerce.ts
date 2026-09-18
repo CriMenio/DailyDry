@@ -70,8 +70,19 @@ export function buildOrderConfirmWhatsAppUrl(order: {
 export const STORE_ADDRESS = 'Kalamboli Sector 14, Navi Mumbai, Maharashtra 400001';
 
 export const STORE_INSTAGRAM_HANDLE = '@dailydry.co';
-export const STORE_INSTAGRAM_URL =
-  'https://www.instagram.com/dailydry.co?stkn=MWpzbmRkdGQ2OW8zcQ==';
+export const STORE_INSTAGRAM_URL = 'https://www.instagram.com/dailydry.co/';
+
+/** Update these if your profile URLs differ. */
+export const STORE_FACEBOOK_URL = 'https://www.facebook.com/dailydry.co';
+export const STORE_TWITTER_URL = 'https://x.com/dailydry.co';
+export const STORE_YOUTUBE_URL = 'https://www.youtube.com/@dailydry.co';
+
+export const STORE_SOCIAL_LINKS = [
+  { id: 'facebook', label: 'Facebook', href: STORE_FACEBOOK_URL },
+  { id: 'instagram', label: 'Instagram', href: STORE_INSTAGRAM_URL },
+  { id: 'twitter', label: 'Twitter', href: STORE_TWITTER_URL },
+  { id: 'youtube', label: 'Youtube', href: STORE_YOUTUBE_URL },
+] as const;
 
 export const ORDER_STATUSES = [
   'Order Placed',

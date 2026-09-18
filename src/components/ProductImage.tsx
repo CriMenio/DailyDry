@@ -1,5 +1,6 @@
-import { useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { fallbackImage } from '../data/media';
+import { resolveProductImagePath } from '../utils/productImagePath';
 
 interface ProductImageProps {
   src: string;
@@ -17,7 +18,13 @@ export default function ProductImage({
   const [loaded, setLoaded] = useState(false);
   const [error, setError] = useState(false);
 
-  const imageSrc = error ? fallbackImage : src;
+  const resolvedSrc = useMemo(() => resolveProductImagePath(src), [src]);
+  const imageSrc = error ? fallbackImage : resolvedSrc || fallbackImage;
+
+  useEffect(() => {
+    setLoaded(false);
+    setError(false);
+  }, [resolvedSrc]);
 
   return (
     <div className={`product-image-wrap ${loaded ? 'loaded' : ''} ${className}`}>

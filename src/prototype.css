@@ -1366,6 +1366,81 @@
   object-fit: cover;
 }
 
+.home-offers-instagram-link {
+  display: inline-block;
+  margin-top: 0.75rem;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--purple);
+}
+
+.home-offers-instagram-link:hover {
+  text-decoration: underline;
+}
+
+.home-offer-card {
+  position: relative;
+}
+
+.home-offer-card .product-image-wrap,
+.home-offer-card .product-image {
+  height: 100%;
+  width: 100%;
+}
+
+.home-offer-badge {
+  position: absolute;
+  top: 0.35rem;
+  left: 0.35rem;
+  z-index: 2;
+  padding: 0.15rem 0.45rem;
+  border-radius: 4px;
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  background: var(--gold);
+  color: var(--purple-dark);
+  line-height: 1.2;
+}
+
+.home-offer-copy {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 2;
+  padding: 1.75rem 0.4rem 0.45rem;
+  background: linear-gradient(180deg, transparent 0%, rgba(45, 24, 45, 0.88) 100%);
+  color: var(--white);
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+}
+
+.home-offer-copy strong {
+  font-size: 0.68rem;
+  line-height: 1.2;
+  font-weight: 700;
+}
+
+.home-offer-copy small {
+  font-size: 0.58rem;
+  opacity: 0.92;
+  line-height: 1.2;
+}
+
+@media (min-width: 900px) {
+  .home-offer-copy strong {
+    font-size: 0.72rem;
+  }
+
+  .home-offer-copy small {
+    font-size: 0.62rem;
+  }
+}
+
 @media (min-width: 640px) {
   .instagram-banner-gallery {
     grid-template-columns: repeat(4, 1fr);
@@ -1381,7 +1456,7 @@
   }
 
   .instagram-banner-content {
-    width: 210px;
+    width: 220px;
   }
 
   .instagram-banner-gallery {

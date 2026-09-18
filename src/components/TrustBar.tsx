@@ -1,8 +1,9 @@
-import { Banknote, Truck, Sparkles } from 'lucide-react';
+import { Banknote, Smartphone, Truck, Sparkles } from 'lucide-react';
 import { ScrollReveal } from '../hooks/useScrollReveal';
 
 const items = [
   { icon: Banknote, label: 'Cash on delivery', sub: 'Pay when your order arrives' },
+  { icon: Smartphone, label: 'Pay through UPI', sub: 'UPI, cards & wallets at checkout' },
   { icon: Truck, label: 'Free Shipping', sub: 'On orders above ₹999' },
   { icon: Sparkles, label: 'Fresh & Hygienic', sub: 'Packed with care' },
 ];

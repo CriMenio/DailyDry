@@ -1,4 +1,5 @@
 import { categoryImages, productImages, pouchProductImages, instagramImages } from './media';
+import { resolveProductImagePath } from '../utils/productImagePath';
 
 export interface Product {
   id: string;
@@ -375,7 +376,7 @@ export function inventoryRowToProduct(row: {
     price: row.mrp,
     rating: 4.5,
     reviews: 0,
-    image: row.imagePath || productImages.almonds,
+    image: resolveProductImagePath(row.imagePath) || productImages.almonds,
     description: row.productName,
     weight: row.weight?.trim() || '',
     badge,

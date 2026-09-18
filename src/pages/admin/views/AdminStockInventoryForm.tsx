@@ -186,17 +186,12 @@ export default function AdminStockInventoryForm({ editSheetId, onBack, onSaved }
                 />
                 <AdminField
                   label="Image path"
-                  hint="Auto-filled after upload, or paste a path / URL"
                   value={form.imagePath}
                   onChange={(e) => setForm({ ...form, imagePath: e.target.value })}
                   placeholder="/media/products/..."
                 />
                 <div className="admin-field admin-field-span-2">
                   <span className="admin-field-label">Upload image</span>
-                  <p className="admin-field-hint">
-                    Saves to <code>public/media/products</code> on local dev. Large photos are auto-resized (max{' '}
-                    {1600}px).
-                  </p>
                   <input
                     ref={fileInputRef}
                     type="file"

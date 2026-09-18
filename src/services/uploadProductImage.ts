@@ -1,13 +1,20 @@
 /**
- * Product image upload (local dev → public/media/products; production → Apps Script / Drive).
+ * Product images: Google Drive (live + local dev with .env) or public/media/products (offline dev only).
  */
-const UPLOAD_URL = '/upload-product-image';
+const LOCAL_UPLOAD_URL = '/upload-product-image';
 
 /** Raw file from disk — we compress before upload. */
 const MAX_SOURCE_BYTES = 25 * 1024 * 1024;
 /** After compression, payload must stay reasonable for JSON + Apps Script. */
 const MAX_UPLOAD_BYTES = 8 * 1024 * 1024;
 const MAX_DIMENSION = 1600;
+
+type UploadPayload = {
+  fileName: string;
+  mimeType: string;
+  data: string;
+  adminToken?: string;
+};
 
 function readFileAsBase64(file: File): Promise<string> {
   return new Promise((resolve, reject) => {
@@ -121,36 +128,90 @@ async function prepareProductImage(file: File): Promise<File> {
   return new File([blob], `${stem}${ext}`, { type: mime });
 }
 
+async function parseUploadResponse(res: Response, text: string): Promise<string> {
+  let json: { ok?: boolean; path?: string; error?: string };
+  try {
+    json = JSON.parse(text);
+  } catch {
+    throw new Error('Upload failed — server returned an invalid response.');
+  }
+  if (!res.ok || !json.ok || !json.path) {
+    throw new Error(json.error || 'Upload failed');
+  }
+  return json.path;
+}
+
+async function uploadViaLocalDisk(payload: UploadPayload): Promise<string> {
+  const res = await fetch(LOCAL_UPLOAD_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload),
+  });
+  const text = await res.text();
+  return parseUploadResponse(res, text);
+}
+
+async function uploadViaAppsScript(payload: UploadPayload): Promise<string> {
+  const errors: string[] = [];
+
+  const apiRes = await fetch('/api', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      action: 'uploadProductImage',
+      adminToken: payload.adminToken,
+      fileName: payload.fileName,
+      mimeType: payload.mimeType,
+      data: payload.data,
+    }),
+  });
+  const apiText = await apiRes.text();
+  try {
+    return await parseUploadResponse(apiRes, apiText);
+  } catch (err) {
+    errors.push(err instanceof Error ? err.message : 'API upload failed');
+  }
+
+  const fnRes = await fetch(LOCAL_UPLOAD_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload),
+  });
+  const fnText = await fnRes.text();
+  try {
+    return await parseUploadResponse(fnRes, fnText);
+  } catch (err) {
+    errors.push(err instanceof Error ? err.message : 'Upload endpoint failed');
+  }
+
+  throw new Error(errors.join(' · '));
+}
+
 export async function uploadProductImageFile(file: File): Promise<string> {
   const prepared = await prepareProductImage(file);
 
   const ext = prepared.name.includes('.') ? prepared.name.slice(prepared.name.lastIndexOf('.')) : '.jpg';
   const safeName = `product-${Date.now()}${ext.replace(/[^a-zA-Z0-9.]/g, '')}`;
   const data = await readFileAsBase64(prepared);
-  const adminToken = localStorage.getItem('dailydry-admin-token');
+  const adminToken = localStorage.getItem('dailydry-admin-token') || undefined;
 
-  const res = await fetch(UPLOAD_URL, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      fileName: safeName,
-      mimeType: prepared.type,
-      data,
-      adminToken: adminToken || undefined,
-    }),
-  });
+  const payload: UploadPayload = {
+    fileName: safeName,
+    mimeType: prepared.type,
+    data,
+    adminToken,
+  };
 
-  const text = await res.text();
-  let json: { ok?: boolean; path?: string; error?: string };
+  const useCloud =
+    Boolean(import.meta.env.VITE_APPS_SCRIPT_URL) || !import.meta.env.DEV;
+
+  if (useCloud) {
+    return uploadViaAppsScript(payload);
+  }
+
   try {
-    json = JSON.parse(text);
+    return await uploadViaLocalDisk(payload);
   } catch {
-    throw new Error('Upload failed. Restart npm run dev and try again.');
+    return uploadViaAppsScript(payload);
   }
-
-  if (!res.ok || !json.ok || !json.path) {
-    throw new Error(json.error || 'Upload failed');
-  }
-
-  return json.path;
 }

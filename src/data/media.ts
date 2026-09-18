@@ -53,6 +53,75 @@ export const instagramImages = [
   `${instagramMedia}/dry-fruit-mix-pouch.jpg`,
 ];
 
+export type HomeOffer = {
+  id: string;
+  badge: string;
+  title: string;
+  subtitle: string;
+  link: string;
+  image: string;
+};
+
+/** Home banner strip — edit titles, links, and images here. */
+export const homeOffers: HomeOffer[] = [
+  {
+    id: 'free-shipping',
+    badge: 'Delivery',
+    title: 'Free Shipping',
+    subtitle: 'Orders above ₹999',
+    link: '/shop',
+    image: pouchProductImages.almonds,
+  },
+  {
+    id: 'bulk',
+    badge: 'Bulk',
+    title: 'Corporate Gifting',
+    subtitle: 'Custom boxes & quotes',
+    link: '/bulk-orders',
+    image: pouchProductImages.dryFruitMix,
+  },
+  {
+    id: 'combo',
+    badge: 'Combo',
+    title: 'Family Packs',
+    subtitle: 'Premium dry fruit mixes',
+    link: '/shop?category=dry-fruit-mix',
+    image: `${dryFruits}/mix.png`,
+  },
+  {
+    id: 'almonds',
+    badge: 'Bestseller',
+    title: 'Premium Almonds',
+    subtitle: 'Everyday protein snack',
+    link: '/shop?category=almonds',
+    image: pouchProductImages.almonds,
+  },
+  {
+    id: 'cashews',
+    badge: 'Offer',
+    title: 'Cashew Deals',
+    subtitle: 'Crunchy & fresh packs',
+    link: '/shop?category=cashews',
+    image: pouchProductImages.cashews,
+  },
+  {
+    id: 'muesli',
+    badge: 'New',
+    title: 'Muesli Mix',
+    subtitle: 'Breakfast & trail mix',
+    link: '/shop?category=muesli',
+    image: pouchProductImages.muesli,
+  },
+  {
+    id: 'kishmish',
+    badge: 'Save',
+    title: 'Golden Kishmish',
+    subtitle: 'Naturally sweet raisins',
+    link: '/shop?category=raisins',
+    image: pouchProductImages.kishmish,
+  },
+];
+
 export const promoBanners = [
   {
     id: '1',

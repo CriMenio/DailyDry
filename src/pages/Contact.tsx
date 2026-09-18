@@ -4,7 +4,14 @@ import { Facebook, Instagram, Twitter, Youtube } from 'lucide-react';
 import { submitContactForm } from '../services/api';
 import { useToast } from '../context/ToastContext';
 import { ScrollReveal } from '../hooks/useScrollReveal';
-import { STORE_PHONE_DISPLAY, STORE_PHONE_TEL, STORE_ADDRESS, STORE_INSTAGRAM_URL, STORE_EMAIL, STORE_EMAIL_MAILTO } from '../config/commerce';
+import { STORE_PHONE_DISPLAY, STORE_PHONE_TEL, STORE_ADDRESS, STORE_EMAIL, STORE_EMAIL_MAILTO, STORE_SOCIAL_LINKS } from '../config/commerce';
+
+const socialIcons = {
+  facebook: Facebook,
+  instagram: Instagram,
+  twitter: Twitter,
+  youtube: Youtube,
+} as const;
 
 const contactInfo = [
   {
@@ -26,12 +33,11 @@ const contactInfo = [
   },
 ];
 
-const socialLinks = [
-  { icon: Facebook, label: 'Facebook', href: '#' },
-  { icon: Instagram, label: 'Instagram', href: STORE_INSTAGRAM_URL },
-  { icon: Twitter, label: 'Twitter', href: '#' },
-  { icon: Youtube, label: 'Youtube', href: '#' },
-];
+const socialLinks = STORE_SOCIAL_LINKS.map(({ id, label, href }) => ({
+  icon: socialIcons[id],
+  label,
+  href,
+}));
 
 export default function Contact() {
   const { showToast } = useToast();
