@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react';
 import Header from './Header';
 import Footer from './Footer';
 import WhatsAppButton from './WhatsAppButton';
+import SiteSeo from './SiteSeo';
 
 export default function Layout() {
   const navigate = useNavigate();
@@ -25,6 +26,7 @@ export default function Layout() {
 
   return (
     <>
+      <SiteSeo />
       <Header searchQuery={localSearch} onSearchChange={handleSearchChange} />
       <main key={location.pathname} className="page-enter">
         <Outlet />

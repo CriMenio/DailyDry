@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { Heart, Star, ShoppingBag, ChevronRight } from 'lucide-react';
 import { getProductById, formatPrice, getShopProducts } from '../data/products';
@@ -10,6 +10,7 @@ import ProductGrid from '../components/ProductGrid';
 import { freeShippingThresholdLabel, lowStockMessage } from '../config/commerce';
 import { useInventory } from '../context/InventoryContext';
 import ProductReviews from '../components/ProductReviews';
+import { usePageSeo } from '../seo/syncPageSeo';
 
 export default function ProductDetail() {
   const { id } = useParams<{ id: string }>();
@@ -22,6 +23,27 @@ export default function ProductDetail() {
   const stock = product ? getStock(product.id) : 0;
   const enabled = product ? isEnabled(product.id) : false;
   const stockLabel = product ? lowStockMessage(stock) : null;
+
+  const seoConfig = useMemo(() => {
+    if (!id) return null;
+    if (!product) {
+      return {
+        title: 'Product not found',
+        pathname: `/product/${id}`,
+        noIndex: true,
+      };
+    }
+    const snippet = product.description?.trim().slice(0, 155);
+    return {
+      title: product.name,
+      description:
+        snippet ||
+        `Buy ${product.name} online from Daily Dry. Premium dry fruits with reliable delivery across India.`,
+      pathname: `/product/${id}`,
+    };
+  }, [product, id]);
+
+  usePageSeo(seoConfig);
 
   if (!product) {
     return (

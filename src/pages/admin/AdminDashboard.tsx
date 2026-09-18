@@ -18,6 +18,7 @@ import {
   adminFetchRetailOrders,
 } from '../../services/api';
 import type { CustomerOrderOfflineRow, OrderRecord, RetailOrderRow } from '../../types/api';
+import { usePageSeo } from '../../seo/syncPageSeo';
 
 type SubView = 'list' | 'form';
 
@@ -215,6 +216,12 @@ function AdminDashboardContent() {
 }
 
 export default function AdminDashboard() {
+  usePageSeo({
+    title: 'Admin',
+    pathname: '/admin',
+    noIndex: true,
+  });
+
   return (
     <RequireAdmin>
       <AdminDashboardContent />

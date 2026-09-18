@@ -5,11 +5,19 @@ import { adminLogin } from '../../services/api';
 import { useToast } from '../../context/ToastContext';
 import Logo from '../../components/Logo';
 
+import { usePageSeo } from '../../seo/syncPageSeo';
+
 export default function AdminLogin() {
   const [userName, setUserName] = useState('');
   const [password, setPassword] = useState('');
   const { showToast } = useToast();
   const navigate = useNavigate();
+
+  usePageSeo({
+    title: 'Admin sign in',
+    pathname: '/admin/login',
+    noIndex: true,
+  });
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
